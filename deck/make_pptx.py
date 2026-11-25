@@ -16,7 +16,9 @@ from pptx.util import Emu, Pt
 
 HERE = Path(__file__).parent
 D = json.loads((HERE / "data.json").read_text(encoding="utf-8"))
-FONTS = Path.home() / "AppData/Local/Microsoft/Windows/Fonts"
+FONTS = next((d for d in (Path.home() / "AppData/Local/Microsoft/Windows/Fonts", Path("C:/Windows/Fonts")) if (d / "Inter-Bold.ttf").exists()), None)
+if FONTS is None:
+    raise SystemExit("Inter-Regular.ttf / Inter-Bold.ttf not found; install Inter to measure text")
 _fc = {}
 
 
@@ -346,7 +348,7 @@ for j, (ic, k, v) in enumerate(props):
         sl.tag(700, yy + 3, "Ready for demo", "green", 19, dot=True)
 y += 4 * 44 + 26
 sl.line(440, y, 1810, y, LIGHT["div"]); y += 34
-stats = [(fmt(D["total"]), "flagged free workspaces", "37352F"), (str(D["paid"]), "already paying, never pitched", "37352F"),
+stats = [(fmt(D["total"]), "flagged free workspaces", "37352F"), (str(D["paid"]), "already paying, don't pitch", "37352F"),
          (fmt(D["labeled"]), "email replies labeled by intent", "37352F"), (str(D["freeBands"]["Call now"]), "free teams to call now", "2383E2")]
 cw = (1370 - 3 * 22) / 4
 for j, (n, lab, col) in enumerate(stats):
@@ -370,7 +372,7 @@ for j, (col, lab) in enumerate([("2383E2", f"Paying ({D['paid']})"), ("E3E2E0", 
     if col:
         sl.oval(xx + 7, gy + 26, 7, fill=col)
     sl.text(xx + (22 if col else 0), gy + 13, 360, 26, lab, size=17, color=LIGHT["tx2"], anchor="m", spacing=1)
-sl.notes(f"Only {round(D['paidPct'])}% of flagged workspaces paid, and they were spread all through the list. Student workspaces looked busiest, but none of the {D['schools']} paid.")
+sl.notes(f"Only {round(D['paidPct'])}% of flagged workspaces paid, and they were spread all through the list. Student workspaces looked busiest, but {D['schoolsPaid']} of the {D['schools']} paid.")
 
 # ================= 3. signals =================
 sl = Slide(prs, 5)
@@ -542,7 +544,7 @@ sl.notes(f"Three lessons. Measure size with seats, not members. {D['top100Paid']
 # ================= 11. next steps =================
 sl = Slide(prs, 5)
 y = sl.frame(10, "Ready for the 15 December demo", src="Dates from the rep lookup brief: demo 15 December 2026, Monday queue from 21 December.")
-groups = [("Now", "green", [("Dashboard and Google Sheet are live", 1), (f"{D['lookupsPassed']} of {D['lookupsTotal']} rep lookups pass", 1), ("Paying accounts hidden from the call order", 1), ("Monday queue starts 21 December", 0)]),
+groups = [("Now", "green", [("Dashboard and Google Sheet are live", 1), (f"{D['lookupsPassed']} of {D['lookupsTotal']} rep lookups pass (checked by hand)", 1), ("Paying accounts hidden from the call order", 1), ("Monday queue starts 21 December", 0)]),
           ("Before reps dial", "yellow", [(f"Suppress the {D['optOuts']} opt-outs by email address", 0), ("Fix account IDs in the reply export", 0), ("Add reply labels to the score", 0)]),
           ("Q4", "blue", [("Score Q4's flagged workspaces", 0), ("Compare scores with who actually pays", 0), ("Adjust the point bands if needed", 0)])]
 cw = (1370 - 2 * 48) / 3
@@ -562,12 +564,13 @@ for j, (name, kind, items) in enumerate(groups):
 sl.callout(440, 860, 1300, 84, "link", "2383E2", [[("Dashboard: ", {}), (D["dashboardUrl"], {"bold": True, "link": url})]], size=22)
 sl.notes(f"The list and dashboard are ready for the demo. Before reps dial, suppress the {D['optOuts']} opt-outs by email and fix the reply IDs. In Q4, score the new flagged workspaces and test the rules against who actually pays.")
 
+titles = [s.shapes.title.text_frame.text if s.shapes.title else "" for s in prs.slides]
+if not all(t.strip() for t in titles):
+    raise SystemExit(f"a slide is missing its title: {titles}")
 dest = HERE / "Who to Call First - Q3 2026 call list.pptx"
 prs.save(dest)
-titles = [s.shapes.title.text_frame.text if s.shapes.title else "" for s in prs.slides]
 pics = sum(1 for s in prs.slides for sh in s.shapes if sh.shape_type == 13)
 shapes = sum(len(s.shapes) for s in prs.slides)
 print(dest.name, f"{dest.stat().st_size / 1e6:.1f} MB,", len(prs.slides), "slides,", shapes, "shapes,", pics, "pictures")
 for k, t in enumerate(titles, 1):
     print(f"  {k:2}. {t!r}")
-assert all(t.strip() for t in titles), "a slide is missing its title"
