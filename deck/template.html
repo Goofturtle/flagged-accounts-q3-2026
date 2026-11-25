@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Who to Call First</title>
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #191919; --ink2: #37352f; --muted: #787774; --faint: #a5a29d; --line: #e9e9e7; --wash: #f7f6f3;
+    --blue: #2383e2; --blue-soft: #e7f3f8; --blue-text: #337ea9;
+    --d-bg: #191919; --d-panel: #232323; --d-line: #2f2f2f; --d-text: rgba(255,255,255,.92); --d-muted: rgba(255,255,255,.52);
+    --ease: cubic-bezier(.2,.75,.2,1);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: #0f0f0f; color: var(--ink); font-family: Inter, "Segoe UI", system-ui, sans-serif; min-height: 100vh;
+         display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 18px; }
+  .shell { width: min(96vw, calc((100vh - 110px) * 16 / 9)); }
+  .stage { position: relative; aspect-ratio: 16 / 9; container-type: inline-size; border-radius: 10px; overflow: hidden;
+           box-shadow: 0 30px 80px -30px rgba(0,0,0,.8); }
+  .slide { position: absolute; inset: 0; font-size: 1.5cqw; line-height: 1.4; transition: opacity .45s ease; }
+  .slide.light { background: #f6f5f4; color: var(--ink); }
+  .panel { background: #fff; border: 1px solid #e6e5e1; border-radius: .8em; padding: 1.1em 1.4em; box-shadow: 0 1px 2px rgba(15,15,15,.04); }
+  .dark .panel { background: #222; border-color: var(--d-line); box-shadow: none; }
+  .hero-num { color: var(--blue); }
+  .dark .hero-num { color: #4aa3f0; }
+  .slide.dark { background: var(--d-bg); color: var(--d-text); }
+  .slide.leaving { opacity: 0; }
+  .pad { position: absolute; inset: 0; padding: 2.6em 3.4em 2.2em; display: flex; flex-direction: column; }
+  .top { display: flex; align-items: center; gap: .6em; font-size: .78em; font-weight: 600; color: var(--muted); }
+  .dark .top { color: var(--d-muted); }
+  .mark { width: 1.55em; height: 1.55em; border-radius: .32em; background: var(--ink); display: grid; place-items: center; }
+  .dark .mark { background: #fff; }
+  .mark i { display: block; width: .8em; height: .52em; border-top: .14em solid #fff; border-bottom: .14em solid #fff; position: relative; }
+  .mark i::after { content: ""; position: absolute; left: 0; right: .25em; top: .05em; border-top: .14em solid #fff; }
+  .dark .mark i, .dark .mark i::after { border-color: var(--ink); }
+  .top .tag { margin-left: auto; }
+  h2.title { font-size: 2.55em; line-height: 1.1; letter-spacing: -.032em; font-weight: 700; margin: .55em 0 0; max-width: 90%; }
+  .body { flex: 1; min-height: 0; display: flex; margin-top: 1.3em; gap: 2.2em; }
+  .foot { display: flex; align-items: flex-end; gap: 1em; margin-top: 1em; font-size: .62em; color: var(--faint); }
+  .dark .foot { color: rgba(255,255,255,.38); }
+  .foot .pg { margin-left: auto; font-weight: 700; letter-spacing: .04em; }
+
+  .tag { display: inline-flex; align-items: center; gap: .35em; font-size: .92em; font-weight: 500; line-height: 1.5; padding: .05em .55em; border-radius: .3em; white-space: nowrap; }
+  .t-gray { background: #f1f1ef; color: #787774; } .t-green { background: #edf3ec; color: #448361; }
+  .t-blue { background: #e7f3f8; color: #337ea9; } .t-yellow { background: #fbf3db; color: #b07d14; }
+  .t-purple { background: #f6f3f9; color: #9065b0; } .t-red { background: #fdebec; color: #d44c47; }
+  .t-orange { background: #fbecdd; color: #c4650b; }
+  .dark .t-gray { background: #2f2f2f; color: #9b9b9b; } .dark .t-blue { background: #1f3a50; color: #6fb0e6; }
+  .dark .t-green { background: #24392b; color: #6fbf8a; } .dark .t-yellow { background: #3e3420; color: #d9a945; }
+
+  .big { font-weight: 800; letter-spacing: -.045em; line-height: .95; font-variant-numeric: tabular-nums; }
+  .muted { color: var(--muted); } .dark .muted { color: var(--d-muted); }
+  .blue { color: var(--blue); } .dark .blue { color: #529cca; }
+
+  /* cover */
+  .cover .pad { justify-content: space-between; }
+  .cover .hero { display: grid; grid-template-columns: 1fr 1.05fr; gap: 2.5em; align-items: center; }
+  .cover .field { position: relative; }
+  .cover .field-cap { font-size: .7em; color: var(--d-muted); margin-top: .8em; display: flex; gap: 1.4em; }
+  .cover .field-cap b { display: inline-block; width: .65em; height: .65em; border-radius: 50%; margin-right: .4em; vertical-align: -.02em; }
+  .cover .kicker { font-size: .9em; font-weight: 600; color: var(--d-muted); margin-bottom: 1em; }
+  .cover h1 { font-size: 5.6em; line-height: .96; letter-spacing: -.055em; font-weight: 800; margin: 0; }
+  .cover h1 em { font-style: normal; color: #4aa3f0; }
+  .cover .sub { font-size: 1.1em; color: var(--d-muted); margin-top: 1.1em; max-width: 24em; line-height: 1.45; }
+  .strip { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--d-line); padding-top: 1.2em; }
+  .strip .n { font-size: 2.6em; }
+  .strip .l { font-size: .78em; color: var(--d-muted); margin-top: .5em; }
+  .strip .hl .n { color: #529cca; }
+
+  /* dot grid */
+  .grid-wrap { position: relative; }
+  .grid-wrap svg { width: 100%; height: auto; display: block; overflow: visible; }
+  .dot { transition: transform 1.25s var(--ease); }
+  .legend { display: flex; gap: 1.6em; font-size: .78em; color: var(--muted); margin-top: .9em; }
+  .dark .legend { color: var(--d-muted); }
+  .legend b { display: inline-block; width: .7em; height: .7em; border-radius: 50%; margin-right: .45em; vertical-align: -.02em; }
+
+  /* signal bars */
+  .sig { display: grid; grid-template-columns: 13em 1fr 5em; align-items: center; gap: 0 1.4em; padding: .62em 0; border-bottom: 1px solid var(--line); }
+  .sig:last-of-type { border-bottom: 0; }
+  .sig .name { font-weight: 600; font-size: .95em; }
+  .bars { display: grid; gap: .35em; }
+  .bar { display: flex; align-items: center; gap: .6em; font-size: .78em; font-variant-numeric: tabular-nums; }
+  .bar span { display: block; height: .95em; border-radius: .2em; transform-origin: left center; }
+  .ratio { font-size: 2em; text-align: right; }
+
+  /* notion table */
+  table.db { width: 100%; border-collapse: collapse; font-size: .82em; }
+  table.db th { text-align: left; font-weight: 500; color: var(--muted); font-size: .9em; padding: .55em .7em; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  table.db td { padding: .5em .7em; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  table.db th + th, table.db td + td { border-left: 1px solid var(--line); }
+  table.db td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  table.db tbody tr:last-child td { border-bottom: 0; }
+  .ranges { display: flex; flex-wrap: wrap; gap: .3em; }
+  .ranges .tag { font-size: .86em; }
+  .points { display: flex; gap: 3px; margin-bottom: 1em; }
+  .points div { display: flex; align-items: baseline; gap: .45em; padding: .55em .8em; border-radius: .5em; color: #fff; font-size: .74em; font-weight: 600; line-height: 1.25; transform-origin: left center; white-space: nowrap; min-width: 0; }
+  .points div b { font-size: 1.6em; font-weight: 800; letter-spacing: -.03em; }
+  .callouts { display: grid; grid-template-columns: 1fr 1fr; gap: .8em; margin-top: 1em; }
+  .callout { background: #fff; border: 1px solid #e6e5e1; border-radius: .7em; padding: .8em 1em; font-size: .82em; line-height: 1.45; display: flex; gap: .7em; }
+  .callout svg { flex: none; width: 1.25em; height: 1.25em; margin-top: .1em; }
+
+  /* bands result */
+  .bandrow { display: grid; grid-template-columns: 1fr auto; align-items: end; padding: 1em 0; border-bottom: 1px solid var(--d-line); }
+  .bandrow:first-child { border-top: 1px solid var(--d-line); }
+  .bandrow .what { font-size: .9em; }
+  .bandrow .what small { display: block; color: var(--d-muted); font-size: .85em; margin-top: .35em; }
+  .bandrow .pct { font-size: 3.1em; text-align: right; }
+  .bandrow.win .pct { color: #529cca; }
+  .caveat { margin-top: 1.1em; font-size: .74em; color: var(--d-muted); line-height: 1.45; }
+
+  /* board */
+  .board { display: grid; grid-template-columns: repeat(5, 1fr); gap: .8em; width: 100%; align-content: start; }
+  .col { background: #edece9; border-radius: .7em; padding: .8em; display: flex; flex-direction: column; gap: .6em; }
+  .col-head { display: flex; align-items: center; justify-content: space-between; font-size: .8em; }
+  .col-head .count { font-weight: 700; color: var(--ink2); font-variant-numeric: tabular-nums; font-size: 1.5em; letter-spacing: -.02em; }
+  .meter { height: .3em; border-radius: .2em; background: #e3e2e0; overflow: hidden; }
+  .meter span { display: block; height: 100%; transform-origin: left center; }
+  .card { background: #fff; border-radius: .35em; box-shadow: 0 0 0 1px rgba(15,15,15,.07), 0 2px 4px rgba(15,15,15,.06); padding: .65em .75em; font-size: .74em; line-height: 1.42; color: var(--ink2); }
+  .board-note { display: flex; gap: 1.6em; font-size: .78em; color: var(--muted); margin-top: 1em; }
+
+  /* ranked list */
+  .chips { display: flex; gap: .7em; margin-bottom: 1em; }
+  .chip { flex: 1; background: #fff; border: 1px solid #e6e5e1; border-radius: .7em; padding: .7em 1em; display: flex; align-items: center; gap: .7em; }
+  .chip .big { font-size: 2.1em; }
+  .chip .l { font-size: .78em; color: var(--muted); }
+
+  /* dashboard */
+  .tilt { flex: 1.75; perspective: 2200px; align-self: center; }
+  .browser { border-radius: .7em; overflow: hidden; background: #fff; transform: rotateY(-13deg) rotateX(5deg) rotateZ(.6deg); transform-origin: left center;
+             box-shadow: 0 0 0 1px rgba(255,255,255,.1), 2.2em 2.6em 4em -1.2em rgba(0,0,0,.85); }
+  .browser .bar-top { height: 1.7em; background: #2a2a2a; display: flex; align-items: center; gap: .35em; padding: 0 .8em; }
+  .browser .bar-top i { width: .55em; height: .55em; border-radius: 50%; background: #4a4a4a; }
+  .browser .bar-top span { margin-left: .8em; font-size: .6em; color: rgba(255,255,255,.55); background: #1d1d1d; border-radius: .3em; padding: .15em .8em; }
+  .browser .shot { height: 19.5em; overflow: hidden; }
+  .browser img { display: block; width: 100%; }
+  .facts { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 1.2em; }
+  .fact .big { font-size: 3.4em; color: #529cca; }
+  .fact p { margin: .3em 0 0; font-size: .9em; line-height: 1.45; color: var(--d-text); }
+  .fact p small { display: block; color: var(--d-muted); font-size: .88em; margin-top: .2em; }
+
+  /* learnings */
+  .learn { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2em; width: 100%; align-self: center; }
+  .lcard { background: var(--d-panel); border: 1px solid var(--d-line); border-radius: .55em; padding: 1.3em 1.3em 1.4em; display: flex; flex-direction: column; }
+  .lcard .idx { font-size: .74em; color: var(--d-muted); font-weight: 600; }
+  .lcard .big { font-size: 4.2em; margin: .3em 0 .35em; color: #4aa3f0; }
+  .lcard .big small { font-size: .38em; letter-spacing: -.01em; font-weight: 700; color: var(--d-muted); margin-left: .2em; }
+  .lcard h3 { font-size: 1.12em; line-height: 1.3; margin: 0 0 .55em; letter-spacing: -.01em; }
+  .lcard p { margin: 0; font-size: .82em; line-height: 1.5; color: var(--d-muted); }
+
+  /* next steps */
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1em; width: 100%; align-content: start; }
+  .center-y { width: 100%; display: flex; flex-direction: column; justify-content: center; }
+  .step { background: #fff; border: 1px solid #e6e5e1; border-radius: .8em; padding: 1.3em 1.4em 1.5em; }
+  .step .n { font-size: 3em; font-weight: 800; letter-spacing: -.05em; color: #e6e5e1; line-height: 1; float: right; }
+  .step h3 { font-size: 1.2em; margin: .7em 0 .6em; letter-spacing: -.015em; }
+  .step ul { margin: 0; padding-left: 1.1em; font-size: .86em; line-height: 1.55; color: var(--ink2); }
+  .step li + li { margin-top: .35em; }
+  .url { margin-top: 1.4em; font-size: .9em; display: flex; align-items: center; gap: .6em; }
+  .url b { font-weight: 600; }
+
+  /* motion */
+  .m { animation: rise .6s var(--ease) both; animation-delay: var(--d, 0s); }
+  .grow { animation: growX .9s var(--ease) both; animation-delay: var(--d, 0s); }
+  .pop { animation: fade .5s ease both; animation-delay: var(--d, 0s); }
+  @keyframes rise { from { opacity: 0; transform: translateY(.7em); } }
+  @keyframes growX { from { transform: scaleX(0); } }
+  @keyframes fade { from { opacity: 0; } }
+  .still .m, .still .grow, .still .pop, .still .dot { animation: none !important; transition: none !important; }
+  @media (prefers-reduced-motion: reduce) { .m, .grow, .pop { animation: none !important; } .dot, .slide { transition: none !important; } }
+
+  .nav { display: flex; align-items: center; justify-content: center; gap: 1em; margin-top: 14px; }
+  .nav button { width: 40px; height: 40px; border-radius: 50%; border: 1px solid #3a3a3a; background: #1b1b1b; color: #fff; font-size: 18px; cursor: pointer; }
+  .nav button:disabled { opacity: .3; cursor: default; }
+  .dots { display: flex; gap: 7px; }
+  .dots i { width: 8px; height: 8px; border-radius: 50%; background: #3a3a3a; cursor: pointer; transition: background .3s, transform .3s; }
+  .dots i.on { background: #fff; transform: scale(1.2); }
+
+  body.print { background: #fff; padding: 0; display: block; }
+  body.print .shell { width: 1600px; }
+  body.print .stage { border-radius: 0; box-shadow: none; page-break-after: always; break-after: page; }
+  body.print .nav { display: none; }
+  body.print .slide { position: absolute; }
+  @page { size: 1600px 900px; margin: 0; }
+</style>
+</head>
+<body>
+<div class="shell" id="shell">
+  <div class="stage" id="stage"></div>
+  <div class="nav"><button id="prev" aria-label="Previous slide">&lsaquo;</button><div class="dots" id="dots"></div><button id="next" aria-label="Next slide">&rsaquo;</button></div>
+</div>
+<script>
+const DATA = /*DATA*/null;
+const Q = new URLSearchParams(location.search);
+const PRINT = Q.has("print"), STILL = PRINT || Q.has("static");
+const fmt = n => Number(n).toLocaleString("en-US");
+const pct = (a, b) => Math.round(100 * a / b);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const D = (s) => `style="--d:${s}s"`;
+const SRC = "Source: Q3 2026 Flagged Free Workspaces with Conversion Outcomes (1,200 accounts)";
+const BAND_TAG = { "Call now": "t-green", "Call this week": "t-yellow", "Nurture": "t-gray" };
+const LABEL_TAG = { ready_to_buy: "t-green", evaluating: "t-blue", not_now: "t-yellow", wrong_contact: "t-purple", not_interested: "t-gray" };
+const LABEL_FILL = { ready_to_buy: "#448361", evaluating: "#337ea9", not_now: "#cb912f", wrong_contact: "#9065b0", not_interested: "#9b9a97" };
+
+function frame({ theme = "light", tag, tagClass = "t-gray", title, body, src = SRC, page, onEnter }) {
+  return { theme, onEnter, html: `<div class="pad">
+    <div class="top"><span class="mark"><i></i></span>Q3 2026 call list<span class="tag ${tagClass}">${tag}</span></div>
+    <h2 class="title m" ${D(.05)}>${title}</h2>
+    <div class="body">${body}</div>
+    <div class="foot"><span>${src}</span><span class="pg">${String(page).padStart(2, "0")}</span></div>
+  </div>` };
+}
+
+/* 1,200-dot grid: 48 x 25. mode "account" = account-ID order, "rank" = score order. */
+const COLS = 48, STEP = 20;
+function gridSVG(id, dark, color) {
+  const rows = Math.ceil(DATA.grid.length / COLS);
+  const off = dark ? "#333" : "#dedcd7", on = dark ? "#4aa3f0" : "#2383e2";
+  color = color || (g => g.p ? on : off);
+  const dots = DATA.grid.map(g =>
+    `<circle class="dot" data-a="${g.a}" data-r="${g.r}" r="6.6" fill="${color(g)}"/>`).join("");
+  return `<svg id="${id}" viewBox="-10 -10 ${COLS * STEP} ${rows * STEP}" role="img" aria-label="Grid of ${fmt(DATA.total)} accounts, ${DATA.paid} paying">${dots}<path class="outline" fill="none"/></svg>`;
+}
+function placeDots(svg, key) {
+  svg.querySelectorAll(".dot").forEach(c => {
+    const i = +c.dataset[key];
+    c.style.transform = `translate(${(i % COLS) * STEP}px, ${Math.floor(i / COLS) * STEP}px)`;
+  });
+}
+
+const S = [];
+/* 1 cover */
+const CALL_NOW_N = DATA.bands.find(b => b.band === "Call now").n;
+S.push({ theme: "dark", cls: "cover", html: `<div class="pad">
+  <div class="top"><span class="mark"><i></i></span>Q3 2026 call list<span class="tag t-gray">Sales Development</span></div>
+  <div class="hero">
+    <div>
+      <div class="kicker m" ${D(.1)}>Free workspace call list · Q3 2026</div>
+      <h1 class="m" ${D(.2)}>Who to<br>call <em>first</em></h1>
+      <div class="sub m" ${D(.35)}>${fmt(DATA.total)} flagged free workspaces, scored and ranked so reps reach the teams most ready to buy.</div>
+    </div>
+    <div class="field">${gridSVG("g1", true, g => g.r < CALL_NOW_N && !g.p ? "#4aa3f0" : g.p ? "#27445c" : "#2c2c2c")}
+      <div class="field-cap m" ${D(1.2)}><span><b style="background:#4aa3f0"></b>${DATA.freeBands["Call now"]} free teams to call now</span><span><b style="background:#27445c"></b>Already paying</span><span>Every dot is one account, ranked by score</span></div></div>
+  </div>
+  <div class="strip">
+    <div class="m" ${D(.55)}><div class="n big" data-count>${fmt(DATA.total)}</div><div class="l">Flagged free workspaces</div></div>
+    <div class="m" ${D(.7)}><div class="n big" data-count>${DATA.paid}</div><div class="l">Already became paying teams</div></div>
+    <div class="m" ${D(.85)}><div class="n big" data-count>${DATA.replies}</div><div class="l">Email replies labeled by intent</div></div>
+    <div class="m hl" ${D(1)}><div class="n big" data-count>${DATA.freeBands["Call now"]}</div><div class="l">Free teams to call now</div></div>
+  </div></div>`,
+  onEnter(el) {
+    const svg = el.querySelector("#g1"); placeDots(svg, "r");
+    if (STILL) return;
+    svg.querySelectorAll(".dot").forEach(c => { const i = +c.dataset.r, d = ((i % COLS) + Math.floor(i / COLS) * 1.6) * 0.014;
+      c.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 500, delay: 250 + d * 1000, fill: "backwards" }); });
+  } });
+
+/* 2 problem */
+S.push(frame({ tag: "The problem", tagClass: "t-red", page: 2,
+  title: `Only 1 in 20 flagged workspaces became a paying team`,
+  body: `<div style="flex:.8;display:flex;flex-direction:column;justify-content:center">
+      <div class="big hero-num m" style="font-size:8em;--d:.25s"><span data-count>${DATA.paidPct.toFixed(1)}</span>%</div>
+      <div class="m" ${D(.4)} style="font-size:1.05em;margin-top:.6em">${DATA.paid} of ${fmt(DATA.total)} flagged workspaces converted to paid in Q3.</div>
+      <div class="m muted" ${D(.5)} style="font-size:.88em;margin-top:1em;line-height:1.5">All ${DATA.paid} used a company email domain. None of the ${DATA.schools} school and university workspaces paid, even though they had the most activity.</div>
+    </div>
+    <div class="grid-wrap panel m" ${D(.2)} style="flex:1.25;align-self:center;padding:1.4em 1.5em 1.1em">${gridSVG("g2", false)}
+      <div class="legend"><span><b style="background:#2383e2"></b>Paying (${DATA.paid})</span><span><b style="background:#e3e2e0"></b>Still free (${fmt(DATA.total - DATA.paid)})</span><span>One dot per account, in account-ID order</span></div></div>`,
+  onEnter(el) {
+    const svg = el.querySelector("#g2"); placeDots(svg, "a");
+    if (STILL) return;
+    svg.querySelectorAll(".dot").forEach(c => { const i = +c.dataset.a; const d = ((i % COLS) + Math.floor(i / COLS)) * 0.012;
+      c.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 400, delay: 300 + d * 1000, fill: "backwards" }); });
+  } }));
+
+/* 3 signals */
+S.push(frame({ tag: "What buyers share", tagClass: "t-blue", page: 3,
+  title: `Paying teams are ${(DATA.signals[0].paid / DATA.signals[0].free).toFixed(0)}× bigger and use Notion more deeply`,
+  src: `${SRC}. Company-domain accounts only: ${DATA.paid} paying vs ${DATA.companyFree} still free. Averages per account.`,
+  body: `<div class="panel" style="width:100%;display:flex;flex-direction:column;justify-content:center;padding:.6em 1.8em 1em">
+    ${DATA.signals.map((s, k) => { const max = Math.max(s.paid, s.free);
+      return `<div class="sig m" ${D(.2 + k * .1)}>
+        <div class="name">${s.label}</div>
+        <div class="bars">
+          <div class="bar"><span class="grow" style="width:${(78 * s.paid / max).toFixed(1)}%;background:#2383e2;--d:${(.35 + k * .1).toFixed(2)}s"></span><b>${s.paid}</b></div>
+          <div class="bar"><span class="grow" style="width:${Math.max(1.2, 78 * s.free / max).toFixed(1)}%;background:#d3d1cb;--d:${(.4 + k * .1).toFixed(2)}s"></span><span style="height:auto;background:none" class="muted">${s.free}</span></div>
+        </div>
+        <div class="ratio big hero-num">${(s.paid / s.free).toFixed(1)}×</div></div>`; }).join("")}
+    <div class="legend m" ${D(.8)}><span><b style="background:#2383e2"></b>Paying teams</span><span><b style="background:#d3d1cb"></b>Still free</span></div>
+  </div>` }));
+
+/* 4 rules */
+const RULE_FILL = ["#191919", "#2383e2", "#529cca", "#7fb6dc", "#a9cde8", "#37352f"];
+S.push(frame({ tag: "Scoring rules", tagClass: "t-blue", page: 4,
+  title: `Six signals add up to a score out of 100`,
+  src: "Point bands set from the paying accounts' patterns. Same rules as the v3 ranked call list in Google Sheets.",
+  body: `<div style="width:100%;display:flex;flex-direction:column">
+    <div class="points">${DATA.rules.map((r, k) => `<div class="grow" style="flex:${r.max};background:${RULE_FILL[k]};--d:${(.25 + k * .08).toFixed(2)}s"><b>${r.max}</b>${r.short}</div>`).join("")}</div>
+    <div class="panel m" ${D(.5)} style="padding:.3em .6em"><table class="db"><thead><tr><th>Signal</th><th>Points for each range</th><th style="text-align:right">Max</th></tr></thead><tbody>
+      ${DATA.rules.map(r => `<tr><td style="font-weight:600">${r.signal}</td><td><div class="ranges">${r.ranges.map(([a, p]) => `<span class="tag ${p ? "t-blue" : "t-gray"}">${a} · ${p}</span>`).join("")}</div></td><td class="num" style="font-weight:700">${r.max}</td></tr>`).join("")}
+    </tbody></table></div>
+    <div class="callouts">
+      <div class="callout m" ${D(.75)}><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="9" fill="#d44c47"/><path d="M6 6l8 8M14 6l-8 8" stroke="#fff" stroke-width="2"/></svg><div><b>University and K-12 workspaces are capped at 20.</b> They have the most active users (median ${DATA.schoolWauMedian}) but none of the ${DATA.schools} paid.</div></div>
+      <div class="callout m" ${D(.85)}><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="9" fill="#2383e2"/><path d="M10 5v6M10 14v1" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg><div><b>Student sign-ups earn nothing, and size means company seats,</b> not total members, so a big campus can't look like a big company.</div></div>
+    </div></div>` }));
+
+/* 5 proof */
+const B = Object.fromEntries(DATA.bands.map(b => [b.band, b]));
+S.push(frame({ theme: "dark", tag: "Does it work", tagClass: "t-blue", page: 5,
+  title: `${pct(B["Call now"].paid, B["Call now"].n)}% of Call now accounts turned out to be paying teams`,
+  body: `<div class="grid-wrap" style="flex:1.2;align-self:center">${gridSVG("g5", true)}
+      <div class="legend"><span><b style="background:#529cca"></b>Paying</span><span><b style="background:#353535"></b>Still free</span><span>Same ${fmt(DATA.total)} dots, now sorted by score</span></div></div>
+    <div style="flex:.85;display:flex;flex-direction:column;justify-content:center">
+      ${[["Call now", "80–100"], ["Call this week", "50–79"], ["Nurture", "0–49"]].map(([b, r], k) => `<div class="bandrow m ${b === "Call now" ? "win" : ""}" ${D(1.6 + k * .15)}>
+        <div class="what"><span class="tag ${BAND_TAG[b]}">${b}</span> <span style="color:var(--d-muted);font-size:.85em">score ${r}</span><small>${fmt(B[b].n)} accounts · ${fmt(B[b].paid)} already paying</small></div>
+        <div class="pct big">${pct(B[b].paid, B[b].n)}%</div></div>`).join("")}
+      <div class="caveat m" ${D(2.1)}>The rules were set using these same ${DATA.paid} paying accounts, so this is a best case. The real test is Q4's flagged accounts.</div>
+    </div>`,
+  onEnter(el) {
+    const svg = el.querySelector("#g5"), path = svg.querySelector(".outline");
+    const n = B["Call now"].n, full = Math.floor(n / COLS), rest = n % COLS, s = STEP, o = -10;
+    const pts = [[0,0],[COLS,0],[COLS,full],[rest,full],[rest,full+1],[0,full+1]].map(([x, y]) => `${x * s + o},${y * s + o}`);
+    path.setAttribute("d", `M${pts.join("L")}Z`);
+    path.setAttribute("stroke", "#529cca"); path.setAttribute("stroke-width", "2"); path.setAttribute("stroke-dasharray", "5 4");
+    if (STILL) { placeDots(svg, "r"); return; }
+    placeDots(svg, "a"); path.style.opacity = 0;
+    requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(() => {
+      svg.querySelectorAll(".dot").forEach(c => { c.style.transitionDelay = `${(+c.dataset.r / DATA.total * .5).toFixed(3)}s`; });
+      placeDots(svg, "r");
+      setTimeout(() => path.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 500, fill: "forwards" }), 1700);
+    }, 450)));
+  } }));
+
+/* 6 replies board */
+S.push(frame({ tag: "Reply labels", tagClass: "t-purple", page: 6,
+  title: `Every one of the ${DATA.replies} email replies has a buying-intent label`,
+  src: `Source: Q3 2026 Outbound Email Reply Export (${DATA.replies} replies); q3-2026-reply-labels.csv. Example cards are real replies.`,
+  body: `<div class="center-y"><div class="board">${DATA.board.map((c, k) => `<div class="col m" ${D(.2 + k * .1)}>
+      <div class="col-head"><span class="tag ${LABEL_TAG[c.key]}">${c.name}</span><span class="count">${c.n}</span></div>
+      <div class="meter"><span class="grow" style="width:${(100 * c.n / Math.max(...DATA.board.map(b => b.n))).toFixed(1)}%;background:${LABEL_FILL[c.key]};--d:${(.4 + k * .1).toFixed(2)}s"></span></div>
+      ${c.examples.map(t => `<div class="card">“${esc(t)}”</div>`).join("")}
+    </div>`).join("")}</div>
+    <div class="board-note m" ${D(.9)}><span><b style="color:var(--ink2)">${DATA.autoReplies}</b> auto-replies left unlabeled until a person answers</span><span><b style="color:var(--ink2)">${DATA.optOuts}</b> opt-outs marked so those addresses are never called</span></div></div>` }));
+
+/* 7 ranked list */
+S.push(frame({ tag: "Ranked call list", tagClass: "t-green", page: 7,
+  title: `The list starts with the free teams that look most like buyers`,
+  src: "Source: Q3 2026 Ranked Call List v3 (Google Sheets). Paying accounts keep their rank but are hidden from the call order.",
+  body: `<div style="width:100%;display:flex;flex-direction:column">
+    <div class="chips">${["Call now", "Call this week", "Nurture"].map((b, k) => `<div class="chip m" ${D(.2 + k * .1)}><span class="big" data-count>${fmt(DATA.freeBands[b])}</span><span><span class="tag ${BAND_TAG[b]}">${b}</span><br><span class="l">free accounts</span></span></div>`).join("")}
+      <div class="chip m" ${D(.5)}><span class="big">${DATA.paid}</span><span><span class="tag t-orange">Already paying</span><br><span class="l">flagged, not called</span></span></div></div>
+    <div class="panel m" ${D(.6)} style="padding:.3em .6em"><table class="db"><thead><tr><th style="text-align:right">Rank</th><th>Account</th><th>Workspace</th><th style="text-align:right">Score</th><th>Band</th><th>Reason</th></tr></thead><tbody>
+      ${DATA.topRows.map(r => `<tr><td class="num">${r.rank}</td><td style="font-weight:600">${r.account_id}</td><td>${esc(r.workspace_name)}</td><td class="num" style="font-weight:700">${r.score}</td><td><span class="tag ${BAND_TAG[r.band]}">${r.band}</span></td><td class="muted" style="color:var(--ink2)">${esc(r.reason)}</td></tr>`).join("")}
+    </tbody></table></div></div>` }));
+
+/* 8 dashboard */
+S.push(frame({ theme: "dark", tag: "Dashboard", tagClass: "t-blue", page: 8,
+  title: `Reps see any account's rank in one step`,
+  src: `Live at ${DATA.dashboardUrl}. Reads the v3 Google Sheet each time it loads.`,
+  body: `<div class="tilt m" ${D(.25)}><div class="browser"><div class="bar-top"><i></i><i></i><i></i><span>${DATA.dashboardUrl}</span></div><div class="shot"><img src="dashboard.png" alt="Call list dashboard showing account ACC-10832 at rank 3 of 1,200, score 100, Call now"></div></div></div>
+    <div class="facts">
+      <div class="fact m" ${D(.5)}><div class="big">${DATA.lookupsPassed}/${DATA.lookupsTotal}</div><p>Rep lookups from the demo brief pass<small>Including IDs with a stray space or in lower case</small></p></div>
+      <div class="fact m" ${D(.65)}><div class="big">0</div><p>Numbers typed into the page<small>Every rank, score and reason comes from the sheet</small></p></div>
+      <div class="fact m" ${D(.8)}><div class="big">${DATA.paid}</div><p>Paying accounts flagged before a rep dials<small>Hidden from the call order by default</small></p></div>
+    </div>` }));
+
+/* 9 learnings */
+S.push(frame({ theme: "dark", tag: "What we learned", tagClass: "t-yellow", page: 9,
+  title: `Three things the data taught us`,
+  src: `${SRC}; Q3 2026 Outbound Email Reply Export (${DATA.replies} replies).`,
+  body: `<div class="learn">
+    <div class="lcard m" ${D(.2)}><div class="idx">01</div><div class="big">${DATA.membersTop60Paid}<small>of 60</small></div><h3>Size means company seats, not members</h3><p>The 60 workspaces with the most members were all schools, and none paid. The 60 with the most company seats include ${DATA.seatsTop60Paid} paying teams.</p></div>
+    <div class="lcard m" ${D(.35)}><div class="idx">02</div><div class="big">${DATA.top100Paid}<small>of 100</small></div><h3>Our best-scoring accounts already pay</h3><p>${DATA.top100Paid} of the top 100 by score were already customers. The call list hides them, so the first row is always a free team to call.</p></div>
+    <div class="lcard m" ${D(.5)}><div class="idx">03</div><div class="big">${DATA.replyIdAgree}<small>of ${DATA.replies}</small></div><h3>Reply data can't be joined to accounts yet</h3><p>The reply export and the account list agree on domain type for only ${DATA.replyIdAgree} of ${DATA.replies} replies, so reply labels stay out of the score until the IDs are fixed.</p></div>
+  </div>` }));
+
+/* 10 next */
+S.push(frame({ tag: "Next steps", tagClass: "t-green", page: 10,
+  title: `Ready for the 15 December demo, with three steps after it`,
+  src: "Dates from the rep lookup brief: demo on 15 December 2026, Monday queue from 21 December.",
+  body: `<div class="center-y">
+    <div class="steps">
+      <div class="step m" ${D(.2)}><span class="n">1</span><span class="tag t-green">Now</span><h3>Live for the demo</h3><ul><li>Dashboard and Google Sheet are live</li><li>${DATA.lookupsPassed} of ${DATA.lookupsTotal} rep lookups pass</li><li>Reps work the Monday queue from 21 December</li></ul></div>
+      <div class="step m" ${D(.35)}><span class="n">2</span><span class="tag t-yellow">Before reps dial</span><h3>Clean the contact data</h3><ul><li>Check the ${DATA.optOuts} opt-outs by email address</li><li>Fix account IDs in the reply export</li><li>Then add reply labels to the ranking</li></ul></div>
+      <div class="step m" ${D(.5)}><span class="n">3</span><span class="tag t-blue">Q4</span><h3>Prove the score</h3><ul><li>Score Q4's flagged workspaces with the same rules</li><li>Compare scores with who actually pays</li><li>Adjust the point bands if the gap narrows</li></ul></div>
+    </div>
+    <div class="url m" ${D(.7)}><span class="tag t-blue">Dashboard</span><b>${DATA.dashboardUrl}</b></div></div>` }));
+
+/* engine */
+const stage = document.getElementById("stage"), dots = document.getElementById("dots");
+let cur = Math.min(S.length - 1, Math.max(0, (+Q.get("slide") || 1) - 1));
+function build(k) {
+  const s = S[k], el = document.createElement("section");
+  el.className = `slide ${s.theme} ${s.cls || ""} ${STILL ? "still" : ""}`;
+  el.setAttribute("aria-label", `Slide ${k + 1} of ${S.length}`);
+  el.innerHTML = s.html; return el;
+}
+function countUp(el) {
+  if (STILL || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  el.querySelectorAll("[data-count]").forEach(n => {
+    const txt = n.textContent, m = txt.match(/[\d,]+(\.\d+)?/); if (!m) return;
+    const target = parseFloat(m[0].replace(/,/g, "")), dec = (m[1] || "").length ? m[1].length - 1 : 0;
+    const delay = parseFloat(getComputedStyle(n.closest(".m") || n).animationDelay) * 1000 || 0, t0 = performance.now() + delay;
+    const f = v => txt.replace(m[0], dec ? v.toFixed(dec) : fmt(Math.round(v)));
+    n.textContent = f(0);
+    (function tick(now) { const p = Math.min(1, Math.max(0, (now - t0) / 900)); n.textContent = f(target * (1 - Math.pow(1 - p, 3))); if (p < 1) requestAnimationFrame(tick); })(performance.now());
+  });
+}
+function show(k) {
+  const old = stage.querySelector(".slide"); cur = k;
+  const el = build(k); stage.appendChild(el);
+  S[k].onEnter && S[k].onEnter(el); countUp(el);
+  if (old) { old.classList.add("leaving"); setTimeout(() => old.remove(), 460); }
+  dots.innerHTML = S.map((_, i) => `<i class="${i === k ? "on" : ""}" data-k="${i}"></i>`).join("");
+  document.getElementById("prev").disabled = k === 0;
+  document.getElementById("next").disabled = k === S.length - 1;
+}
+if (PRINT) {
+  document.body.classList.add("print");
+  const shell = document.getElementById("shell"); shell.innerHTML = "";
+  S.forEach((s, k) => { const st = document.createElement("div"); st.className = "stage"; const el = build(k); st.appendChild(el); shell.appendChild(st); s.onEnter && s.onEnter(el); });
+} else {
+  dots.addEventListener("click", e => { if (e.target.dataset.k) show(+e.target.dataset.k); });
+  document.getElementById("prev").onclick = () => cur > 0 && show(cur - 1);
+  document.getElementById("next").onclick = () => cur < S.length - 1 && show(cur + 1);
+  document.addEventListener("keydown", e => {
+    if (["ArrowRight", "PageDown", " "].includes(e.key)) { e.preventDefault(); document.getElementById("next").onclick(); }
+    if (["ArrowLeft", "PageUp"].includes(e.key)) document.getElementById("prev").onclick();
+    if (e.key === "f") document.documentElement.requestFullscreen?.();
+  });
+  show(cur);
+}
+</script>
+</body>
+</html>

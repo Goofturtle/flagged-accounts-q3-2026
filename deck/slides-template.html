@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Who to Call First (slides)</title>
+<link rel="icon" href="data:,">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root { --tx:#37352f; --tx2:#787774; --tx3:#a19f9a; --div:#ededec; --side:#f8f8f7; --hov:#efefee; --call:#f1f1ef; --blue:#2383e2; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #444; font-family: Inter, "Segoe UI", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  .s { position: relative; width: 1920px; height: 1080px; overflow: hidden; margin: 0 auto 40px; background: #fff; color: var(--tx); display: grid; grid-template-columns: 330px 1fr; }
+  .s.dark { --tx: rgba(255,255,255,.86); --tx2: rgba(255,255,255,.48); --tx3: rgba(255,255,255,.32); --div: #2f2f2f; --side: #202020; --hov: #2c2c2c; --call: #262626; background: #191919; }
+
+  /* sidebar */
+  .side { background: var(--side); border-right: 1px solid var(--div); padding: 22px 14px; display: flex; flex-direction: column; font-size: 19px; color: var(--tx2); }
+  .ws { display: flex; align-items: center; gap: 12px; padding: 6px 10px 18px; color: var(--tx); font-weight: 600; font-size: 20px; }
+  .ws .av { width: 30px; height: 30px; border-radius: 7px; background: #37352f; color: #fff; display: grid; place-items: center; font-size: 16px; font-weight: 700; }
+  .dark .ws .av { background: #fff; color: #191919; }
+  .it { display: flex; align-items: center; gap: 12px; padding: 7px 10px; border-radius: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.3; }
+  .it svg { flex: none; width: 21px; height: 21px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; opacity: .85; }
+  .it.on { background: var(--hov); color: var(--tx); font-weight: 600; }
+  .grp { font-size: 15px; font-weight: 600; color: var(--tx3); padding: 18px 10px 6px; }
+  .side .foot { margin-top: auto; display: flex; align-items: center; gap: 12px; border: 1px solid var(--div); border-radius: 12px; padding: 14px 16px; font-size: 17px; line-height: 1.35; color: var(--tx2); background: var(--side); }
+  .side .foot b { color: var(--tx); display: block; }
+
+  /* main */
+  .main { position: relative; overflow: hidden; display: flex; flex-direction: column; }
+  .topbar { height: 58px; flex: none; display: flex; align-items: center; gap: 10px; padding: 0 26px; font-size: 18px; color: var(--tx2); }
+  .topbar .crumb { display: flex; align-items: center; gap: 10px; color: var(--tx); }
+  .topbar .crumb span.sep { color: var(--tx3); }
+  .topbar .lock { display: flex; align-items: center; gap: 6px; color: var(--tx3); margin-left: 6px; }
+  .topbar .right { margin-left: auto; display: flex; align-items: center; gap: 22px; }
+  .topbar .share { border: 1px solid var(--div); border-radius: 8px; padding: 4px 12px; color: var(--tx); }
+  .page { position: relative; flex: 1; padding: 0 110px 0 110px; }
+  .cover { height: 250px; margin: 0 -110px; position: relative; overflow: hidden; }
+  .picon { width: 96px; height: 96px; display: grid; place-items: center; margin: 54px 0 18px; }
+  .picon svg { width: 92px; height: 92px; fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  .cover + .picon { margin-top: -58px; position: relative; background: #fff; border-radius: 18px; width: 112px; height: 112px; box-shadow: 0 0 0 1px rgba(15,15,15,.06); }
+  h1 { font-size: 70px; line-height: 1.08; font-weight: 700; letter-spacing: -0.03em; margin: 0; color: var(--tx); max-width: 1380px; }
+  .lede { font-size: 26px; line-height: 1.5; color: var(--tx2); margin: 18px 0 0; max-width: 1200px; }
+  .props { display: grid; grid-template-columns: 230px 1fr; row-gap: 10px; font-size: 21px; margin-top: 26px; }
+  .props .k { display: flex; align-items: center; gap: 10px; color: var(--tx2); }
+  .props .k svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.7; }
+  .divider { height: 1px; background: var(--div); margin: 26px 0; }
+  .src { position: absolute; left: 110px; bottom: 26px; font-size: 15px; color: var(--tx3); }
+
+  /* tags */
+  .tag { display: inline-flex; align-items: center; gap: 8px; font-size: 19px; line-height: 1.45; padding: 1px 10px; border-radius: 6px; white-space: nowrap; font-weight: 500; }
+  .tag.dot::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: currentColor; opacity: .9; }
+  .t-gray{background:#e9e9e7;color:#5f5e5b} .t-green{background:#dbeddb;color:#2b593f} .t-blue{background:#d3e5ef;color:#28456c}
+  .t-yellow{background:#fdecc8;color:#6c4b13} .t-purple{background:#e8deee;color:#492f64} .t-red{background:#ffe2dd;color:#73251b} .t-orange{background:#fadec9;color:#6c3a0f}
+  .dark .t-gray{background:#373737;color:#d4d4d4} .dark .t-green{background:#2b593f;color:#dbeddb} .dark .t-blue{background:#28456c;color:#d3e5ef} .dark .t-yellow{background:#6c4b13;color:#fdecc8}
+
+  /* blocks */
+  .callout { display: flex; gap: 18px; background: var(--call); border-radius: 10px; padding: 22px 26px; font-size: 22px; line-height: 1.5; color: var(--tx); }
+  .callout .ci { flex: none; width: 34px; height: 34px; }
+  .callout .ci svg { width: 34px; height: 34px; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .embed { border: 1px solid var(--div); border-radius: 10px; overflow: hidden; background: #fff; }
+  .dark .embed { background: #202020; }
+  .embed img { display: block; width: 100%; }
+  .caption { font-size: 16px; color: var(--tx3); margin-top: 10px; }
+  .big { font-weight: 800; letter-spacing: -0.05em; line-height: .92; font-variant-numeric: tabular-nums; color: var(--tx); }
+  .blue { color: var(--blue) !important; } .dark .blue { color: #529cca !important; }
+  .cols { display: grid; gap: 34px; }
+
+  /* database */
+  .dbbar { display: flex; align-items: center; gap: 8px; font-size: 19px; color: var(--tx2); border-bottom: 1px solid var(--div); padding-bottom: 12px; margin-bottom: 4px; }
+  .dbbar .view { display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px; border-radius: 8px; }
+  .dbbar .view.on { background: var(--hov); color: var(--tx); font-weight: 500; }
+  .dbbar .view svg, .dbbar .tools svg { width: 19px; height: 19px; stroke: currentColor; fill: none; stroke-width: 1.7; }
+  .dbbar .tools { margin-left: auto; display: flex; align-items: center; gap: 18px; color: var(--tx3); }
+  .dbbar .new { background: var(--blue); color: #fff; border-radius: 7px; padding: 4px 14px; font-weight: 600; }
+  table.db { width: 100%; border-collapse: collapse; font-size: 21px; }
+  table.db th { text-align: left; font-weight: 500; color: var(--tx2); font-size: 18px; padding: 11px 14px; border-bottom: 1px solid var(--div); white-space: nowrap; }
+  table.db th svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 1.7; vertical-align: -2px; margin-right: 8px; }
+  table.db td { padding: 11px 14px; border-bottom: 1px solid var(--div); }
+  table.db th + th, table.db td + td { border-left: 1px solid var(--div); }
+  .ranges { display: flex; gap: 7px; flex-wrap: wrap; } .ranges .tag { font-size: 17px; padding: 0 9px; }
+
+  /* board */
+  .board { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-top: 16px; }
+  .bcol { display: flex; flex-direction: column; gap: 10px; }
+  .bhead { display: flex; align-items: center; gap: 10px; font-size: 18px; color: var(--tx2); padding: 2px 4px 6px; }
+  .bcard { background: #fff; border-radius: 10px; padding: 15px 16px 14px; font-size: 18px; line-height: 1.45; color: var(--tx); box-shadow: 0 0 0 1px rgba(15,15,15,.09), 0 2px 4px rgba(15,15,15,.07); }
+  .bcard .meta { margin-top: 10px; display: flex; gap: 6px; } .bcard .meta .tag { font-size: 14px; padding: 0 7px; }
+  .bnew { font-size: 17px; color: var(--tx3); padding: 6px 6px; }
+  .boardwrap { background: #fbfbfa; margin: 0 -14px; padding: 4px 14px 0; }
+
+  /* chart view */
+  .sig { display: grid; grid-template-columns: 330px 1fr 150px; align-items: center; padding: 11px 0; border-bottom: 1px solid var(--div); }
+  .sig:last-child { border-bottom: 0; }
+  .sig .nm { font-size: 23px; font-weight: 500; }
+  .sig .bars { display: grid; gap: 7px; }
+  .sig .bar { display: flex; align-items: center; gap: 12px; font-size: 18px; color: var(--tx2); font-variant-numeric: tabular-nums; }
+  .sig .bar i { display: block; height: 18px; border-radius: 4px; }
+  .sig .rt { font-size: 48px; text-align: right; }
+
+  /* dots */
+  .grid svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .legend { display: flex; gap: 28px; font-size: 18px; color: var(--tx2); margin-top: 16px; }
+  .legend b { display: inline-block; width: 14px; height: 14px; border-radius: 50%; margin-right: 9px; vertical-align: -1px; }
+
+  /* to-dos */
+  .todo { display: flex; gap: 14px; font-size: 23px; line-height: 1.45; padding: 7px 0; }
+  .todo .cb { flex: none; width: 26px; height: 26px; border: 2px solid var(--tx2); border-radius: 4px; margin-top: 4px; display: grid; place-items: center; }
+  .todo.done .cb { background: var(--blue); border-color: var(--blue); }
+  .todo.done .cb svg { width: 18px; height: 18px; stroke: #fff; stroke-width: 3; fill: none; }
+  .todo.done span { color: var(--tx3); text-decoration: line-through; }
+  h3 { font-size: 34px; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 14px; color: var(--tx); display: flex; align-items: center; gap: 14px; }
+
+  /* bookmark */
+  .bm { display: grid; grid-template-columns: 1fr 360px; border: 1px solid var(--div); border-radius: 12px; overflow: hidden; }
+  .bm .t { padding: 26px 30px; }
+  .bm .t b { font-size: 26px; display: block; color: var(--tx); }
+  .bm .t p { font-size: 20px; color: var(--tx2); margin: 10px 0 18px; line-height: 1.45; }
+  .bm .t .u { font-size: 18px; color: var(--tx); display: flex; align-items: center; gap: 10px; }
+  .bm img { width: 100%; height: 100%; object-fit: cover; object-position: left top; display: block; }
+  code { font-family: "SFMono-Regular", Consolas, monospace; font-size: .86em; background: rgba(135,131,120,.15); color: #eb5757; border-radius: 5px; padding: 3px 7px; }
+  .dark code { background: rgba(135,131,120,.25); color: #ff7369; }
+</style>
+</head>
+<body>
+<div id="deck"></div>
+<script>
+const DATA = /*DATA*/null;
+const fmt = n => Number(n).toLocaleString("en-US");
+const pct = (a, b) => Math.round(100 * a / b);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const B = Object.fromEntries(DATA.bands.map(b => [b.band, b]));
+const BAND = { "Call now": "t-green", "Call this week": "t-yellow", "Nurture": "t-gray" };
+const LAB = { ready_to_buy: "t-green", evaluating: "t-blue", not_now: "t-yellow", wrong_contact: "t-purple", not_interested: "t-gray" };
+const P = {  // outline icons, Notion icon-picker style
+  target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2"/>',
+  alert: '<path d="M12 3l9.5 17h-19z"/><path d="M12 10v4M12 17v.5"/>',
+  chart: '<path d="M4 20V4M4 20h16"/><path d="M8 16v-4M12 16V8M16 16v-6"/>',
+  list: '<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/>',
+  check: '<circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.7 2.7L16.5 9.5"/>',
+  mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6l8.5 7 8.5-7"/>',
+  table: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M3 15h18M10 4v16"/>',
+  monitor: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>',
+  play: '<circle cx="12" cy="12" r="9"/><path d="M10 8.5l5.5 3.5-5.5 3.5z"/>',
+  bulb: '<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/>',
+  flag: '<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>',
+  page: '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/>',
+  home: '<path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"/>', search: '<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/>',
+  inbox: '<path d="M4 13l2.5-8h11L20 13v6H4z"/><path d="M4 13h5l1 2h4l1-2h5"/>', board: '<rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="10" rx="1.5"/><rect x="17" y="4" width="4" height="13" rx="1.5"/>',
+  sheet: '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 9h16M4 15h16M10 3v18"/>', link: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+  aa: '<path d="M3 18l4.5-12L12 18M4.7 14h5.6"/><path d="M15 12.5c.6-1 1.6-1.5 2.8-1.5 1.8 0 2.7 1 2.7 2.8V18m0-3.2c-.9-.5-1.8-.6-2.8-.6-1.6 0-2.7.8-2.7 2 0 1.1.9 1.9 2.2 1.9 1.3 0 2.5-.7 3.3-1.8"/>',
+  hash: '<path d="M5 9h14M5 15h14M10 4l-2 16M16 4l-2 16"/>', status: '<circle cx="12" cy="12" r="8" stroke-dasharray="3 2.4"/>',
+  people: '<circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14c2 .8 3 2.9 3 6"/>',
+  cal: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>', lock: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+  filter: '<path d="M4 6h16M7 12h10M10 18h4"/>', sort: '<path d="M7 4v16M4 17l3 3 3-3M17 20V4M14 7l3-3 3 3"/>', star: '<path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.8l-5.2 2.8 1-5.8L3.5 9.7l5.9-.8z"/>',
+  ext: '<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>',
+};
+const ic = (k, color, extra = "") => `<svg viewBox="0 0 24 24" ${color ? `stroke="${color}"` : ""} ${extra}>${P[k]}</svg>`;
+const PAGES = [
+  ["Who to call first", "target", "#2383e2"], ["The problem", "alert", "#e03e3e"], ["What paying teams share", "chart", "#2383e2"],
+  ["Scoring rules", "list", "#2383e2"], ["Does it work", "check", "#0f7b6c"], ["Reply labels", "mail", "#9065b0"],
+  ["Ranked call list", "table", "#0f7b6c"], ["Dashboard", "monitor", "#2383e2"], ["Live demo", "play", "#2383e2"],
+  ["Key insights", "bulb", "#dfab01"], ["What's next", "flag", "#0f7b6c"],
+];
+const SRC = "Source: Q3 2026 Flagged Free Workspaces with Conversion Outcomes, 1,200 accounts.";
+
+function dots(order, colorFn, r = 6.6) {
+  const COLS = 48, STEP = 20, rows = Math.ceil(DATA.grid.length / COLS);
+  return `<svg viewBox="-10 -10 ${COLS * STEP} ${rows * STEP}">${DATA.grid.map(g => { const i = g[order];
+    return `<circle cx="${(i % COLS) * STEP}" cy="${Math.floor(i / COLS) * STEP}" r="${r}" fill="${colorFn(g)}"/>`; }).join("")}</svg>`;
+}
+function frame(k, dark, body, { cover = "", src = "" } = {}) {
+  const [name, icon, color] = PAGES[k];
+  return { dark, html: `
+  <aside class="side">
+    <div class="ws"><span class="av">S</span>Sales Development</div>
+    <div class="it">${ic("search")}Search</div><div class="it">${ic("home")}Home</div><div class="it">${ic("inbox")}Inbox</div>
+    <div class="grp">Q3 2026 call list</div>
+    ${PAGES.map(([n, i, c], j) => `<div class="it ${j === k ? "on" : ""}">${ic(i, j === k ? c : "")}${n}</div>`).join("")}
+    <div class="foot">${ic("monitor", color, 'style="width:30px;height:30px;flex:none;fill:none;stroke-width:1.7"')}<div><b>Live dashboard</b>goofturtle.github.io</div></div>
+  </aside>
+  <div class="main">
+    <div class="topbar"><div class="crumb">Sales Development <span class="sep">/</span> Q3 2026 call list <span class="sep">/</span> ${ic(icon, color, 'style="width:19px;height:19px;fill:none;stroke-width:1.8"')} ${name}</div>
+      <span class="lock">${ic("lock", "", 'style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8"')} Shared</span>
+      <div class="right"><span>Edited 25 Nov</span><span class="share">Share</span>${ic("star", "", 'style="width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7"')}</div></div>
+    <div class="page">${cover}<div class="picon">${ic(icon, color)}</div>${body}${src ? `<div class="src">${src}</div>` : ""}</div>
+  </div>` };
+}
+const S = [];
+const add = (f, notes) => S.push({ ...f, notes });
+
+/* 1 cover */
+add(frame(0, false, `
+  <h1 style="font-size:96px;letter-spacing:-0.04em">Who to call first</h1>
+  <div class="props">
+    <div class="k">${ic("people")}Team</div><div>Sales Development</div>
+    <div class="k">${ic("status")}Status</div><div><span class="tag dot t-green">Ready for demo</span></div>
+    <div class="k">${ic("cal")}Demo</div><div>15 December 2026</div>
+    <div class="k">${ic("hash")}Flagged workspaces</div><div>${fmt(DATA.total)}</div>
+  </div>
+  <div class="divider"></div>
+  <div class="callout" style="font-size:25px">${`<span class="ci">${ic("target", "#2383e2")}</span>`}<div>We scored and ranked ${fmt(DATA.total)} flagged free workspaces so reps call the <b>${DATA.freeBands["Call now"]} free teams</b> most ready to buy first, and never pitch the <b>${DATA.paid}</b> that already pay.</div></div>`,
+  { cover: `<div class="cover" style="background:#0f1a24">${dots("r", g => g.r < B["Call now"].n && !g.p ? "#4aa3f0" : g.p ? "#2a4a66" : "#1f2b36", 6.4).replace("<svg ", '<svg style="position:absolute;left:-10px;top:-40px;width:2000px" ')}</div>` }),
+  "We flagged 1,200 free Notion workspaces in Q3. This deck shows how we decided which ones reps should call first, and the tools reps will use.");
+
+/* 2 problem */
+add(frame(1, false, `
+  <h1>${fmt(DATA.total)} flagged. Only ${DATA.paid} became paying teams.</h1>
+  <div class="cols" style="grid-template-columns:480px 1fr;margin-top:40px;align-items:start">
+    <div>
+      <div class="big blue" style="font-size:230px">${Math.round(DATA.paidPct)}%</div>
+      <p class="lede" style="font-size:24px;color:var(--tx);margin-top:26px">${DATA.paid} of ${fmt(DATA.total)} converted in Q3. Every one used a company email domain.</p>
+      <div class="callout" style="margin-top:22px;font-size:20px"><span class="ci">${ic("alert", "#e03e3e")}</span><div>Reps were calling student-heavy workspaces first. None of the ${DATA.schools} school workspaces paid.</div></div>
+    </div>
+    <div><div class="embed grid" style="padding:34px 38px 26px">${dots("a", g => g.p ? "#2383e2" : "#e3e2e0")}
+      <div class="legend"><span><b style="background:#2383e2"></b>Paying (${DATA.paid})</span><span><b style="background:#e3e2e0"></b>Still free (${fmt(DATA.total - DATA.paid)})</span></div></div>
+      <div class="caption">One dot per flagged workspace, in account-ID order</div></div>
+  </div>`, { src: SRC }),
+  "Only 5% of flagged workspaces paid, and they were spread all through the list. Reps had no way to tell them apart, and student workspaces looked busiest.");
+
+/* 3 signals as a chart view */
+add(frame(2, false, `
+  <h1>Paying teams are ${Math.round(DATA.signals[0].paid / DATA.signals[0].free)}× bigger and use Notion more deeply</h1>
+  <div style="margin-top:34px">
+    <div class="dbbar"><span class="view on">${ic("chart")}Chart</span><span class="view">${ic("table")}Table</span>
+      <span class="tools"><span style="display:flex;gap:18px;align-items:center"><span><b style="display:inline-block;width:13px;height:13px;border-radius:3px;background:#2383e2;margin-right:7px"></b>Paying teams</span><span><b style="display:inline-block;width:13px;height:13px;border-radius:3px;background:#d3d1cb;margin-right:7px"></b>Still free</span></span>${ic("filter")}${ic("sort")}</span></div>
+    ${DATA.signals.map(s => { const m = Math.max(s.paid, s.free); return `<div class="sig"><div class="nm">${s.label}</div>
+      <div class="bars"><div class="bar"><i style="width:${(80 * s.paid / m).toFixed(1)}%;background:#2383e2"></i><b style="color:var(--tx)">${s.paid}</b></div>
+      <div class="bar"><i style="width:${Math.max(1.5, 80 * s.free / m).toFixed(1)}%;background:#d3d1cb"></i>${s.free}</div></div>
+      <div class="rt big blue">${(s.paid / s.free).toFixed(1)}×</div></div>`; }).join("")}
+  </div>`, { src: `${SRC} Company-domain accounts only: ${DATA.paid} paying vs ${DATA.companyFree} still free. Average per workspace.` }),
+  "Comparing company accounts only, paying teams have about 8 times the company seats, 3 times the teamspaces and 4 times the integrations. These became the scoring signals.");
+
+/* 4 rules database */
+add(frame(3, false, `
+  <h1>Six signals, 100 points</h1>
+  <div style="margin-top:30px">
+    <div class="dbbar"><span class="view on">${ic("table")}All signals</span><span class="view">Caps</span><span class="tools">${ic("filter")}${ic("sort")}${ic("search")}<span class="new">New</span></span></div>
+    <table class="db"><thead><tr><th>${ic("aa")}Signal</th><th>${ic("list")}Points for each range</th><th style="text-align:right">${ic("hash")}Max</th></tr></thead><tbody>
+    ${DATA.rules.map(r => `<tr><td style="font-weight:600">${r.signal}</td><td><div class="ranges">${r.ranges.map(([a, p]) => `<span class="tag ${p ? "t-blue" : "t-gray"}">${a} · ${p}</span>`).join("")}</div></td><td style="text-align:right;font-weight:700">${r.max}</td></tr>`).join("")}
+    </tbody></table>
+  </div>
+  <div class="cols" style="grid-template-columns:1fr 1fr;gap:18px;margin-top:26px">
+    <div class="callout" style="font-size:20px"><span class="ci">${ic("alert", "#e03e3e")}</span><div><b>Schools are capped at 20.</b> University and K-12 workspaces have the most active users (median ${DATA.schoolWauMedian}), but none of the ${DATA.schools} paid.</div></div>
+    <div class="callout" style="font-size:20px"><span class="ci">${ic("bulb", "#dfab01")}</span><div><b>Student sign-ups earn nothing.</b> Size is measured in company seats, not total members, so a campus can't look like a company.</div></div>
+  </div>`),
+  "Six signals from the data, worth 100 points in total. Company seats carry the most weight. Schools are capped at 20 because their activity comes from students, not a team that buys.");
+
+/* 5 proof (dark mode) */
+add(frame(4, true, `
+  <h1>${pct(B["Call now"].paid, B["Call now"].n)}% of Call now accounts became paying teams</h1>
+  <div class="cols" style="grid-template-columns:1fr 520px;margin-top:40px;align-items:start;gap:56px">
+    <div class="grid">${dots("r", g => g.p ? "#529cca" : "#333")}
+      <div class="legend"><span><b style="background:#529cca"></b>Paying</span><span><b style="background:#333"></b>Still free</span><span>Same ${fmt(DATA.total)} workspaces, sorted by score</span></div></div>
+    <div>${[["Call now", "80–100"], ["Call this week", "50–79"], ["Nurture", "0–49"]].map(([b, r], k) => `
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;padding:22px 0;border-top:1px solid #2f2f2f">
+        <div><span class="tag dot ${BAND[b]}">${b}</span><div style="font-size:19px;color:var(--tx2);margin-top:10px">Score ${r} · ${fmt(B[b].n)} accounts · ${B[b].paid} paying</div></div>
+        <div class="big ${k === 0 ? "blue" : ""}" style="font-size:${k === 0 ? 110 : 76}px">${pct(B[b].paid, B[b].n)}%</div></div>`).join("")}
+      <div class="callout" style="font-size:18px;margin-top:12px"><span class="ci">${ic("alert", "#ffa344")}</span><div>The rules were set on these same ${DATA.paid} paying accounts, so this is a best case. The real test is Q4.</div></div>
+    </div></div>`, { src: SRC }),
+  "Sorted by score, the paying teams pile up at the top. Three in four Call now accounts had paid, against one in a hundred in Nurture. Caveat: the rules were built on this same data.");
+
+/* 6 board */
+add(frame(5, false, `
+  <h1>All ${DATA.replies} email replies, labeled by buying intent</h1>
+  <div style="margin-top:30px">
+    <div class="dbbar"><span class="view on">${ic("board")}Board</span><span class="view">${ic("table")}Table</span>
+      <span class="tools"><span>${DATA.autoReplies} auto-replies wait for a person · ${DATA.optOuts} opt-outs never called</span>${ic("filter")}<span class="new">New</span></span></div>
+    <div class="boardwrap"><div class="board">${DATA.board.map(c => `<div class="bcol">
+      <div class="bhead"><span class="tag dot ${LAB[c.key]}" style="font-size:18px">${c.name}</span><span style="font-weight:600">${c.n}</span></div>
+      ${c.examples.map((t, j) => `<div class="bcard">“${esc(t)}”<div class="meta"><span class="tag ${c.conf[j] === "high" ? "t-gray" : "t-orange"}">confidence: ${c.conf[j]}</span></div></div>`).join("")}
+      <div class="bnew">+ New</div></div>`).join("")}</div></div>
+  </div>`),
+  "Every reply got one of the team's five labels. Opt-outs are marked so those addresses are never called, and auto-replies wait for a real answer. The cards are real replies.");
+
+/* 7 sheet embed */
+add(frame(6, false, `
+  <h1>One ranked list, live in Google Sheets</h1>
+  <div class="cols" style="grid-template-columns:repeat(4, auto);justify-content:start;gap:44px;margin-top:26px;font-size:21px">
+    ${["Call now", "Call this week", "Nurture"].map(b => `<div style="display:flex;align-items:center;gap:14px"><span class="big" style="font-size:50px">${fmt(DATA.freeBands[b])}</span><span class="tag dot ${BAND[b]}">${b}</span></div>`).join("")}
+    <div style="display:flex;align-items:center;gap:14px"><span class="big" style="font-size:50px">${DATA.paid}</span><span class="tag dot t-orange">Already paying</span></div>
+  </div>
+  <div class="embed" style="margin-top:28px;margin-right:-160px;height:600px">
+    <div style="display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid var(--div);font-size:18px;color:var(--tx2)">${ic("sheet", "#0f9d58", 'style="width:22px;height:22px;fill:none;stroke-width:1.8"')} Q3 2026 Ranked Call List v3 · Google Sheets</div>
+    <img src="shots/sheet.png"></div>`),
+  "All 1,200 workspaces in one Google Sheet, ranked by score, with a one-line reason a rep can read out. The counts are free accounts only. The 60 paying accounts keep their rank but are marked Yes, so nobody pitches them.");
+
+/* 8 dashboard */
+add(frame(7, false, `
+  <h1>Reps type an account and see its rank</h1>
+  <div class="cols" style="grid-template-columns:1fr 440px;gap:46px;margin-top:34px;align-items:start">
+    <div><div class="embed" style="height:600px"><img src="shots/dash-paying.png"></div><div class="caption">Paying account ACC-10070, flagged before anyone dials</div></div>
+    <div style="display:flex;flex-direction:column;gap:20px">
+      ${[["sheet", "#0f7b6c", "Reads the Google Sheet live", "No number is typed into the page"], ["aa", "#2383e2", "Forgives messy input", "Stray spaces and lower case still match"],
+         ["flag", "#d9730d", "Flags paying accounts", "Shows “Already paying” before a call"], ["people", "#9065b0", "Free teams come first", "Customers are hidden from the call order"]].map(([i, c, t, d]) =>
+        `<div class="callout" style="font-size:19px;padding:18px 22px"><span class="ci">${ic(i, c)}</span><div><b style="font-size:22px;display:block">${t}</b><span style="color:var(--tx2)">${d}</span></div></div>`).join("")}
+    </div></div>`),
+  "The dashboard reads the sheet live. A rep types or picks an account and sees rank, score, band and reason. Paying accounts are flagged before anyone dials.");
+
+/* 9 live demo (dark) */
+add(frame(8, true, `
+  <h1 style="font-size:96px;letter-spacing:-0.04em">Try it live</h1>
+  <div class="bm" style="margin-top:34px;max-width:1300px;background:#202020">
+    <div class="t"><b>Q3 call list</b><p>Look up any of the ${fmt(DATA.total)} flagged workspaces and see its rank, score, band and reason, read live from Google Sheets.</p>
+      <div class="u">${ic("link", "", 'style="width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8"')}${DATA.dashboardUrl}</div></div>
+    <img src="shots/dash-free.png"></div>
+  <h3 style="margin-top:44px">${ic("aa", "#529cca", 'style="width:34px;height:34px;fill:none;stroke-width:1.8"')}Try typing</h3>
+  <div style="display:grid;grid-template-columns:repeat(4, auto);justify-content:start;gap:16px 40px;font-size:23px">
+    ${[["ACC-10832", "rank 3, top free team"], ["ACC-10070", "already paying"], ["acc-10918", "lower case still works"], ["ACC-11347", "not in the list"]].map(([a, b]) =>
+      `<div><code>${a}</code> <span style="color:var(--tx2);font-size:20px;margin-left:6px">${b}</span></div>`).join("")}
+  </div>
+  <div class="callout" style="margin-top:34px;max-width:1300px;font-size:21px"><span class="ci">${ic("check", "#4dab9a")}</span><div>${DATA.lookupsPassed} of ${DATA.lookupsTotal} rep lookups from the demo brief pass, including IDs with a stray space.</div></div>`),
+  "Open the dashboard and try these four. Rank 3 is the top free team. ACC-10070 shows the paying flag. Lower case still works, and an unknown ID says it has no score.");
+
+/* 10 learnings (dark) */
+add(frame(9, true, `
+  <h1>What building it taught us</h1>
+  <div class="cols" style="grid-template-columns:repeat(3, 1fr);gap:22px;margin-top:40px">
+    ${[[DATA.membersTop60Paid, "of 60", "Size means company seats, not members", `The 60 workspaces with the most members were all schools, and none paid. The 60 with the most seats include ${DATA.seatsTop60Paid} paying teams.`, "people", "#529cca"],
+       [DATA.top100Paid, "of 100", "The best-scoring accounts already pay", `${DATA.top100Paid} of the top 100 by score were already customers, so the call list hides them and starts with a free team.`, "flag", "#ffa344"],
+       [DATA.replyIdAgree, `of ${DATA.replies}`, "Reply data can't be joined yet", `The reply export agrees with the account list on domain type for only ${DATA.replyIdAgree} of ${DATA.replies} replies, so labels stay out of the score.`, "mail", "#9a6dd7"]].map(([n, of, h, p, i, c]) =>
+      `<div class="callout" style="flex-direction:column;gap:0;padding:34px 34px 38px">
+        <span class="ci">${ic(i, c)}</span>
+        <div class="big" style="font-size:120px;margin-top:26px;color:${c}">${n}<span style="font-size:34px;letter-spacing:-0.01em;color:var(--tx2);margin-left:10px;font-weight:600">${of}</span></div>
+        <b style="font-size:29px;line-height:1.2;letter-spacing:-0.02em;margin-top:22px;display:block">${h}</b>
+        <span style="font-size:20px;color:var(--tx2);margin-top:14px;display:block;line-height:1.5">${p}</span></div>`).join("")}
+  </div>`, { src: `${SRC} Q3 2026 Outbound Email Reply Export, ${DATA.replies} replies.` }),
+  "Three lessons. Measure size with seats, not members. Our top scorers were already customers, so we hide them. And the reply file's account IDs don't match yet, so reply labels stay out of the score.");
+
+/* 11 next steps as to-dos */
+const todo = (t, done) => `<div class="todo ${done ? "done" : ""}"><span class="cb">${done ? '<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>' : ""}</span><span>${t}</span></div>`;
+add(frame(10, false, `
+  <h1>Ready for the 15 December demo</h1>
+  <div class="cols" style="grid-template-columns:repeat(3, 1fr);gap:48px;margin-top:46px">
+    <div><h3><span class="tag dot t-green" style="font-size:22px">Now</span></h3>${todo("Dashboard and Google Sheet are live", 1)}${todo(`${DATA.lookupsPassed} of ${DATA.lookupsTotal} rep lookups pass`, 1)}${todo("Paying accounts hidden from the call order", 1)}${todo("Monday queue starts 21 December")}</div>
+    <div><h3><span class="tag dot t-yellow" style="font-size:22px">Before reps dial</span></h3>${todo(`Check the ${DATA.optOuts} opt-outs by email address`)}${todo("Fix account IDs in the reply export")}${todo("Add reply labels to the score")}</div>
+    <div><h3><span class="tag dot t-blue" style="font-size:22px">Q4</span></h3>${todo("Score Q4's flagged workspaces")}${todo("Compare scores with who actually pays")}${todo("Adjust the point bands if needed")}</div>
+  </div>
+  <div class="callout" style="margin-top:46px;font-size:22px;max-width:1300px"><span class="ci">${ic("link", "#2383e2")}</span><div>Dashboard: <b>${DATA.dashboardUrl}</b></div></div>`,
+  { src: "Dates from the rep lookup brief: demo 15 December 2026, Monday queue from 21 December." }),
+  "The list and dashboard are ready for the demo. Before reps dial, check opt-outs by email and fix the reply IDs. In Q4, score the new flagged workspaces and test the rules against who actually pays.");
+
+document.getElementById("deck").innerHTML = S.map(s => `<section class="s ${s.dark ? "dark" : ""}" data-notes="${esc(s.notes)}">${s.html}</section>`).join("");
+</script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+[
+ "We flagged 1,200 free Notion workspaces in Q3. This deck shows how we decided which ones reps should call first, and the tools reps will use.",
+ "Only 5% of flagged workspaces paid, and they were spread all through the list. Reps had no way to tell them apart, and student workspaces looked busiest.",
+ "Comparing company accounts only, paying teams have about 8 times the company seats, 3 times the teamspaces and 4 times the integrations. These became the scoring signals.",
+ "Six signals from the data, worth 100 points in total. Company seats carry the most weight. Schools are capped at 20 because their activity comes from students, not a team that buys.",
+ "Sorted by score, the paying teams pile up at the top. Three in four Call now accounts had paid, against one in a hundred in Nurture. Caveat: the rules were built on this same data.",
+ "Every reply got one of the team's five labels. Opt-outs are marked so those addresses are never called, and auto-replies wait for a real answer. The cards are real replies.",
+ "All 1,200 workspaces in one Google Sheet, ranked by score, with a one-line reason a rep can read out. The counts are free accounts only. The 60 paying accounts keep their rank but are marked Yes, so nobody pitches them.",
+ "The dashboard reads the sheet live. A rep types or picks an account and sees rank, score, band and reason. Paying accounts are flagged before anyone dials.",
+ "Open the dashboard and try these four. Rank 3 is the top free team. ACC-10070 shows the paying flag. Lower case still works, and an unknown ID says it has no score.",
+ "Three lessons. Measure size with seats, not members. Our top scorers were already customers, so we hide them. And the reply file's account IDs don't match yet, so reply labels stay out of the score.",
+ "The list and dashboard are ready for the demo. Before reps dial, check opt-outs by email and fix the reply IDs. In Q4, score the new flagged workspaces and test the rules against who actually pays."
+]
