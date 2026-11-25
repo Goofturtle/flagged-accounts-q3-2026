@@ -10,7 +10,9 @@
 
 ## Call list dashboard
 
-Open `dashboard/index.html` from any web server, for example `python -m http.server 3590` in this folder, then go to `http://localhost:3590/dashboard/`. It needs an internet connection, because it reads the data from Google Sheets.
+**Live page:** https://goofturtle.github.io/flagged-accounts-q3-2026/dashboard/ (GitHub Pages). To run it locally, start any web server in this folder, for example `python -m http.server 3590`, and go to `http://localhost:3590/dashboard/`. Either way it needs an internet connection, because it reads the data from Google Sheets.
+
+**Default view:** the ranked list starts filtered to accounts that aren't paying yet, so the top row is always a free team a rep should call (rank 3, ACC-10832). Choose "Already paying" or "All accounts" under Customers to see the paying accounts. A lookup or pick always shows any account, paying or not.
 
 **Where the numbers come from:** the page reads the "Ranked call list" tab of the [Q3 2026 Ranked Call List v3](https://docs.google.com/spreadsheets/d/1iGSvshfq0duZX7YIIByxbNwJYSdMqWXHZJoRLZ7vsmw/edit) Google Sheet as CSV every time it loads. No rank, score, band, reason or count is typed into the page. If the sheet can't be loaded, the page says so instead of showing anything. The header line confirms how many accounts loaded and that none is missing a score or reason.
 
@@ -28,7 +30,7 @@ Open `dashboard/index.html` from any web server, for example `python -m http.ser
 | 6 | `ACC-11347` | "isn't in the Q3 ranked call list … so it has no score yet" |
 | 7 | Pick by workspace name | Dropdown of all 1,200 accounts grouped by workspace name, with ID and rank; picking one shows the same card |
 | 8 | Domain type = Schools | Top school is ACC-10575 at rank 591, and its reason gives the student sign-up count |
-| 9 | Band = Call now | 63 accounts, ranks 1 to 63, all scoring 80 or more |
+| 9 | Band = Call now | 16 accounts that aren't paying yet, from rank 3 down, all scoring 82 or more. With Customers = All accounts: 63 accounts, ranks 1 to 63 |
 | 10 | A paying account (ACC-10070) | Rank 1, score 100, Call now, "Already paying" badge and banner; no row on the page has a blank score or reason |
 
 ### Main prompt
@@ -44,7 +46,9 @@ Picker: a dropdown of every account grouped by workspace name, each option showi
 
 Paying accounts: when Already paying is Yes, show an "Already paying" badge and a line telling the rep it is already a customer.
 
-Ranked list: a table under the card, sorted by rank, with filters for band, domain type (including "Schools: university + K-12") and paying status. Show every row when a filter leaves 100 or fewer; otherwise show 50 with a "Show all" button. Clicking a row opens its card.
+Ranked list: a table under the card, sorted by rank, with filters for band, domain type (including "Schools: university + K-12") and paying status. Build the band and domain options from the sheet's own values. Start with paying accounts hidden, so the top row is always a free team to call, and keep the option to show them. Show every row when a filter leaves 100 or fewer; otherwise show 50 with a "Show all" button. Each account ID in the table is a button that opens its card.
+
+Robustness: skip blank rows (no account ID or rank), show "—" for a missing score, accept Yes or TRUE in Already paying, stop waiting after 15 seconds, and say plainly what went wrong when anything fails.
 
 Design: flat and readable at a glance, Inter, one blue accent, band pills, 44 px touch targets, keyboard focus visible, works at 375 px wide.
 

@@ -16,6 +16,7 @@
     --text: #15181d;
     --muted: #5d6573;
     --line: #e3e6eb;
+    --field: #858d9a;
     --accent: #1f5eff;
     --accent-soft: #e8efff;
     --warn: #9a4b00;
@@ -29,11 +30,12 @@
     font: 15px/1.5 Inter, "Segoe UI", system-ui, sans-serif;
   }
   .wrap { max-width: 1040px; margin: 0 auto; padding: 32px 16px 64px; }
-  header h1 { font-size: 26px; line-height: 1.25; margin: 0 0 4px; font-weight: 700; letter-spacing: -0.01em; }
+  h1 { font-size: 26px; line-height: 1.25; margin: 0 0 4px; font-weight: 700; letter-spacing: -0.01em; }
+  h2 { font-size: 18px; line-height: 1.3; margin: 0 0 12px; }
   .source { color: var(--muted); font-size: 13px; margin: 0; }
   .source a { color: inherit; }
-  .source .ok { color: #137a3a; font-weight: 600; }
-  .source .bad { color: #b42318; font-weight: 600; }
+  .ok { color: #137a3a; font-weight: 600; }
+  .bad { color: #b42318; font-weight: 600; }
 
   .panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; margin-top: 20px; }
   .lookup { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
@@ -41,17 +43,21 @@
   label.small { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; font-weight: 500; }
   input[type=text], select {
     width: 100%; font: inherit; color: var(--text); background: var(--surface);
-    border: 1px solid #cfd4dc; border-radius: 8px; padding: 10px 12px; min-height: 44px;
+    border: 1px solid var(--field); border-radius: 8px; padding: 10px 12px; min-height: 44px;
   }
-  input[type=text]:focus, select:focus, button:focus-visible, tr:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  input[type=text]:focus, select:focus, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
   button {
     font: inherit; font-weight: 600; border: 0; border-radius: 8px; padding: 10px 18px; min-height: 44px;
     background: var(--accent); color: #fff; cursor: pointer;
   }
   button.quiet { background: var(--gray-soft); color: var(--text); }
+  button.id-link {
+    background: none; color: var(--accent); padding: 0; min-height: 0; border-radius: 4px;
+    font-weight: 600; text-decoration: underline; text-underline-offset: 2px;
+  }
 
   .card { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 16px; }
-  .card[hidden] { display: none; }
+  .card:empty { margin: 0; padding: 0; border: 0; }
   .card-top { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 20px; }
   .rank { font-size: 40px; line-height: 1.2; font-weight: 700; font-variant-numeric: tabular-nums; }
   .rank small { font-size: 16px; font-weight: 500; color: var(--muted); }
@@ -65,26 +71,31 @@
   .band-nurture { background: var(--gray-soft); color: #3d4450; }
   .paying { background: var(--warn-soft); color: var(--warn); }
   .paying-banner { margin-top: 12px; background: var(--warn-soft); color: var(--warn); border-radius: 8px; padding: 10px 12px; font-weight: 600; }
-  .notfound { font-size: 16px; }
-  .notfound strong { font-variant-numeric: tabular-nums; }
+  .notfound { font-size: 16px; margin: 0; }
 
   .filters { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; }
   .filters > div { min-width: 180px; flex: 1; }
   .count { color: var(--muted); font-size: 13px; margin: 14px 0 8px; }
-  .table-wrap { overflow-x: auto; }
   table { width: 100%; border-collapse: collapse; font-size: 14px; }
   th { text-align: left; font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; padding: 8px; border-bottom: 1px solid var(--line); }
   td { padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
-  td.num { font-variant-numeric: tabular-nums; text-align: right; }
-  th.num { text-align: right; }
-  tbody tr { cursor: pointer; }
+  .num { font-variant-numeric: tabular-nums; text-align: right; }
   tbody tr:hover { background: #f9fafb; }
   .more { margin-top: 12px; }
   .status { padding: 24px 0; color: var(--muted); }
+  .status:empty { display: none; }
   @media (max-width: 640px) {
     .lookup { grid-template-columns: 1fr; }
     .rank { font-size: 32px; }
-    .hide-sm { display: none; }
+    thead { display: none; }
+    tbody tr {
+      display: grid; grid-template-columns: 3.2em 1fr auto; gap: 4px 10px;
+      padding: 12px 0; border-bottom: 1px solid var(--line);
+    }
+    td { padding: 0; border: 0; }
+    td.c-name { display: none; }
+    td.c-band, td.c-reason { grid-column: 2 / -1; }
+    td.c-rank { text-align: left; font-weight: 600; }
   }
 </style>
 </head>
@@ -92,64 +103,53 @@
 <div class="wrap">
   <header>
     <h1>Q3 call list</h1>
-    <p class="source" id="source">Loading the ranked call list from Google Sheets…</p>
+    <p class="source" id="source" role="status">Loading the ranked call list from Google Sheets…</p>
   </header>
 
   <section class="panel" aria-labelledby="lookup-h">
-    <h2 id="lookup-h" class="small" style="font-size:13px;color:var(--muted);margin:0 0 6px;font-weight:500">Look up an account</h2>
+    <h2 id="lookup-h">Look up an account</h2>
     <form class="lookup" id="lookup-form" autocomplete="off">
-      <input type="text" id="account-input" placeholder="ACC-10342" aria-label="Account ID" spellcheck="false" disabled>
-      <button type="submit" id="lookup-btn" disabled>Look up</button>
+      <div>
+        <label class="small" for="account-input">Account ID</label>
+        <input type="text" id="account-input" placeholder="ACC-10342" spellcheck="false" disabled>
+      </div>
+      <button type="submit" id="lookup-btn" disabled style="align-self:end">Look up</button>
     </form>
     <div class="pick">
       <label class="small" for="account-pick">Or pick by workspace name</label>
       <select id="account-pick" disabled><option value="">Choose a workspace…</option></select>
     </div>
-    <div class="card" id="card" hidden aria-live="polite"></div>
+    <div class="card" id="card" aria-live="polite"></div>
   </section>
 
   <section class="panel" aria-labelledby="list-h">
-    <h2 id="list-h" style="font-size:18px;margin:0 0 12px">Ranked list</h2>
+    <h2 id="list-h">Ranked list</h2>
     <div class="filters">
       <div>
         <label class="small" for="f-band">Band</label>
-        <select id="f-band">
-          <option value="">All bands</option>
-          <option>Call now</option>
-          <option>Call this week</option>
-          <option>Nurture</option>
-        </select>
+        <select id="f-band" disabled><option value="">All bands</option></select>
       </div>
       <div>
         <label class="small" for="f-domain">Domain type</label>
-        <select id="f-domain">
-          <option value="">All domain types</option>
-          <option value="schools">Schools (university + K-12)</option>
-          <option value="company">Company</option>
-          <option value="personal">Personal</option>
-          <option value="university">University</option>
-          <option value="k12_school">K-12 school</option>
-        </select>
+        <select id="f-domain" disabled><option value="">All domain types</option></select>
       </div>
       <div>
         <label class="small" for="f-paying">Customers</label>
-        <select id="f-paying">
+        <select id="f-paying" disabled>
+          <option value="no" selected>Not paying yet</option>
+          <option value="yes">Already paying</option>
           <option value="">All accounts</option>
-          <option value="No">Not paying yet</option>
-          <option value="Yes">Already paying</option>
         </select>
       </div>
     </div>
     <p class="count" id="count"></p>
-    <div class="table-wrap">
-      <table>
-        <thead><tr>
-          <th class="num">Rank</th><th>Account</th><th class="hide-sm">Workspace</th>
-          <th class="num">Score</th><th>Band</th><th>Reason</th>
-        </tr></thead>
-        <tbody id="rows"></tbody>
-      </table>
-    </div>
+    <table>
+      <thead><tr>
+        <th class="num">Rank</th><th>Account</th><th>Workspace</th>
+        <th class="num">Score</th><th>Band</th><th>Reason</th>
+      </tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
     <div class="status" id="list-status">Loading…</div>
     <button class="quiet more" id="more" hidden>Show all</button>
   </section>
@@ -158,14 +158,19 @@
 <script>
 const SHEET_ID = "1iGSvshfq0duZX7YIIByxbNwJYSdMqWXHZJoRLZ7vsmw";
 const TAB = "Ranked call list";
-const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(TAB)}`;
+const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&headers=1&sheet=${encodeURIComponent(TAB)}`;
 const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit`;
-const PAGE = 50;
+const NEED = ["Rank", "account_id", "workspace_name", "Score", "Band", "Reason", "Already paying", "domain_type", "rep_owner"];
+const SCHOOLS = ["university", "k12_school"];
+const PAGE = 50, SHOW_ALL_UP_TO = 100, TIMEOUT_MS = 15000;
 
 let rows = [], byId = new Map(), showAll = false;
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fmt = n => n.toLocaleString("en-US");
+const toNum = v => { const s = String(v).replace(/,/g, "").trim(); return s === "" ? NaN : Number(s); };
+const shownScore = s => Number.isFinite(s) ? String(s) : "—";
+const normalise = v => v.replace(/\s+/g, "").toUpperCase();
 
 function parseCSV(text) {
   const out = []; let row = [], f = "", q = false;
@@ -185,58 +190,85 @@ function parseCSV(text) {
   return out;
 }
 
-function bandClass(b) { return b === "Call now" ? "band-now" : b === "Call this week" ? "band-week" : "band-nurture"; }
-function normalise(v) { return v.replace(/\s+/g, "").toUpperCase(); }
+function bandClass(b) {
+  const k = b.toLowerCase();
+  return k === "call now" ? "band-now" : k === "call this week" ? "band-week" : "band-nurture";
+}
+
+function fail(message) {
+  $("source").innerHTML = `<span class="bad">${message}</span>`;
+  $("list-status").textContent = "No data loaded.";
+}
 
 async function load() {
   let text;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
   try {
-    const res = await fetch(CSV_URL, { cache: "no-store" });
+    const res = await fetch(CSV_URL, { cache: "no-store", signal: ctrl.signal });
     if (!res.ok) throw new Error(res.status);
     text = await res.text();
   } catch (e) {
-    $("source").innerHTML = `<span class="bad">Couldn't load the call list from Google Sheets.</span> Check your connection and reload the page.`;
-    $("list-status").textContent = "No data loaded.";
+    fail(e.name === "AbortError"
+      ? "Google Sheets took too long to answer. Check the connection and reload the page."
+      : "Couldn't load the call list from Google Sheets. Check the connection and reload the page.");
     return;
-  }
-  const [head, ...body] = parseCSV(text).filter(r => r.length > 1);
+  } finally { clearTimeout(timer); }
+
+  const table = parseCSV(text);
+  const head = (table.shift() || []).map(h => h.trim());
+  const missing = NEED.filter(n => !head.includes(n));
+  if (missing.length) { fail(`The sheet is missing columns: ${esc(missing.join(", "))}. Nothing is shown until that is fixed.`); return; }
   const col = name => head.indexOf(name);
-  const need = ["Rank", "account_id", "workspace_name", "Score", "Band", "Reason", "Already paying", "domain_type", "rep_owner"];
-  const missing = need.filter(n => col(n) < 0);
-  if (missing.length) {
-    $("source").innerHTML = `<span class="bad">The sheet is missing columns: ${esc(missing.join(", "))}.</span>`;
-    return;
+
+  let skipped = 0;
+  rows = [];
+  for (const r of table) {
+    const id = (r[col("account_id")] || "").trim();
+    const rank = toNum(r[col("Rank")]);
+    if (!id || !(rank > 0)) { if (r.some(v => v.trim())) skipped++; continue; }
+    const paid = (r[col("Already paying")] || "").trim().toLowerCase();
+    rows.push({
+      rank, id, name: r[col("workspace_name")] || "", score: toNum(r[col("Score")]),
+      band: (r[col("Band")] || "").trim(), reason: (r[col("Reason")] || "").trim(),
+      paying: paid === "yes" || paid === "true", domain: (r[col("domain_type")] || "").trim(),
+      rep: r[col("rep_owner")] || "",
+    });
   }
-  rows = body.map(r => ({
-    rank: Number(r[col("Rank")]), id: r[col("account_id")], name: r[col("workspace_name")],
-    score: r[col("Score")] === "" ? NaN : Number(r[col("Score")]), band: r[col("Band")], reason: r[col("Reason")],
-    paying: r[col("Already paying")] === "Yes", domain: r[col("domain_type")], rep: r[col("rep_owner")],
-  })).sort((a, b) => a.rank - b.rank);
-  rows.forEach(r => byId.set(r.id.toUpperCase(), r));
+  rows.sort((a, b) => a.rank - b.rank);
+  byId = new Map(rows.map(r => [normalise(r.id), r]));
+  if (!rows.length) { fail("The sheet loaded but has no accounts in it."); return; }
 
-  const blanks = rows.filter(r => Number.isNaN(r.score) || !r.reason.trim()).length;
+  const blanks = rows.filter(r => !Number.isFinite(r.score) || !r.reason).length;
   const when = new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  const problems = [];
+  if (blanks) problems.push(`${fmt(blanks)} rows are missing a score or reason`);
+  if (skipped) problems.push(`${fmt(skipped)} rows had no account ID or rank and were left out`);
   $("source").innerHTML =
-    `<span class="${blanks ? "bad" : "ok"}">${fmt(rows.length)} accounts</span> loaded live from the ` +
-    `<a href="${SHEET_URL}" target="_blank" rel="noopener">ranked call list in Google Sheets</a> at ${esc(when)}` +
-    (blanks ? ` · <span class="bad">${fmt(blanks)} rows are missing a score or reason</span>` : ` · every row has a score and a reason`);
+    `<span class="${problems.length ? "bad" : "ok"}">${fmt(rows.length)} accounts</span> loaded live from the ` +
+    `<a href="${SHEET_URL}" target="_blank" rel="noopener">ranked call list in Google Sheets</a> at ${esc(when)} · ` +
+    (problems.length ? `<span class="bad">${esc(problems.join("; "))}</span>` : `every row has a score and a reason`);
 
-  const groups = new Map();
-  [...rows].sort((a, b) => a.name.localeCompare(b.name) || a.rank - b.rank)
-    .forEach(r => { if (!groups.has(r.name)) groups.set(r.name, []); groups.get(r.name).push(r); });
+  // Filter options come from the sheet's own values, in the order they first appear by rank.
+  const unique = key => [...new Set(rows.map(r => r[key]).filter(Boolean))];
+  $("f-band").innerHTML = `<option value="">All bands</option>` +
+    unique("band").map(b => `<option>${esc(b)}</option>`).join("");
+  const domains = unique("domain").sort();
+  $("f-domain").innerHTML = `<option value="">All domain types</option>` +
+    (domains.some(d => SCHOOLS.includes(d)) ? `<option value="__schools">Schools (university + K-12)</option>` : "") +
+    domains.map(d => `<option>${esc(d)}</option>`).join("");
+
   $("account-pick").innerHTML = `<option value="">Choose a workspace…</option>` +
-    [...groups].map(([name, list]) => `<optgroup label="${esc(name)}">` +
-      list.map(r => `<option value="${esc(r.id)}">${esc(r.name)} · ${esc(r.id)} · rank ${fmt(r.rank)}</option>`).join("") +
-      `</optgroup>`).join("");
+    [...rows].sort((a, b) => a.name.localeCompare(b.name) || a.rank - b.rank)
+      .map(r => `<option value="${esc(r.id)}">${esc(r.name)} · ${esc(r.id)} · rank ${fmt(r.rank)}</option>`).join("");
 
-  ["account-input", "lookup-btn", "account-pick"].forEach(id => $(id).disabled = false);
+  ["account-input", "lookup-btn", "account-pick", "f-band", "f-domain", "f-paying"].forEach(id => $(id).disabled = false);
   renderList();
   $("account-input").focus();
 }
 
 function showCard(r, typed) {
   const card = $("card");
-  card.hidden = false;
   if (!r) {
     card.innerHTML = `<p class="notfound"><strong>${esc(typed)}</strong> isn't in the Q3 ranked call list of ${fmt(rows.length)} accounts, so it has no score yet. Don't guess one.</p>`;
     return;
@@ -244,12 +276,12 @@ function showCard(r, typed) {
   card.innerHTML = `
     <div class="card-top">
       <div class="rank">#${fmt(r.rank)} <small>of ${fmt(rows.length)}</small></div>
-      <div class="score">${r.score} <small>/ 100</small></div>
-      <span class="pill ${bandClass(r.band)}">${esc(r.band)}</span>
+      <div class="score">${shownScore(r.score)} <small>/ 100</small></div>
+      ${r.band ? `<span class="pill ${bandClass(r.band)}">${esc(r.band)}</span>` : ""}
       ${r.paying ? `<span class="pill paying">Already paying</span>` : ""}
     </div>
     ${r.paying ? `<div class="paying-banner">Already a customer. Don't pitch an upgrade.</div>` : ""}
-    <p class="reason">${esc(r.reason)}</p>
+    <p class="reason">${r.reason ? esc(r.reason) : "No reason in the sheet for this account."}</p>
     <p class="meta">${esc(r.id)} · ${esc(r.name)} · ${esc(r.domain)} · Rep: ${esc(r.rep)}</p>`;
 }
 
@@ -263,25 +295,24 @@ function filtered() {
   const band = $("f-band").value, dom = $("f-domain").value, pay = $("f-paying").value;
   return rows.filter(r =>
     (!band || r.band === band) &&
-    (!dom || (dom === "schools" ? (r.domain === "university" || r.domain === "k12_school") : r.domain === dom)) &&
-    (!pay || (pay === "Yes") === r.paying));
+    (!dom || (dom === "__schools" ? SCHOOLS.includes(r.domain) : r.domain === dom)) &&
+    (!pay || (pay === "yes") === r.paying));
 }
 
 function renderList() {
   const list = filtered();
-  const shown = showAll || list.length <= 100 ? list : list.slice(0, PAGE);
+  const shown = showAll || list.length <= SHOW_ALL_UP_TO ? list : list.slice(0, PAGE);
   $("rows").innerHTML = shown.map(r => `
-    <tr tabindex="0" data-id="${esc(r.id)}">
-      <td class="num">${fmt(r.rank)}</td>
-      <td>${esc(r.id)}${r.paying ? `<br><span class="pill paying">Already paying</span>` : ""}</td>
-      <td class="hide-sm">${esc(r.name)}</td>
-      <td class="num">${r.score}</td>
-      <td><span class="pill ${bandClass(r.band)}">${esc(r.band)}</span></td>
-      <td>${esc(r.reason)}</td>
+    <tr>
+      <td class="num c-rank">${fmt(r.rank)}</td>
+      <td class="c-id"><button type="button" class="id-link" data-id="${esc(r.id)}" aria-label="Show ${esc(r.id)}">${esc(r.id)}</button>${r.paying ? ` <span class="pill paying">Already paying</span>` : ""}</td>
+      <td class="c-name">${esc(r.name)}</td>
+      <td class="num c-score">${shownScore(r.score)}</td>
+      <td class="c-band">${r.band ? `<span class="pill ${bandClass(r.band)}">${esc(r.band)}</span>` : ""}</td>
+      <td class="c-reason">${esc(r.reason)}</td>
     </tr>`).join("");
   $("count").textContent = `${fmt(list.length)} account${list.length === 1 ? "" : "s"}, sorted by rank` +
     (shown.length < list.length ? ` · showing the first ${fmt(shown.length)}` : "");
-  $("list-status").hidden = list.length > 0;
   $("list-status").textContent = list.length ? "" : "No accounts match these filters.";
   $("more").hidden = shown.length >= list.length;
   $("more").textContent = `Show all ${fmt(list.length)}`;
@@ -295,14 +326,13 @@ $("account-pick").addEventListener("change", e => {
 });
 ["f-band", "f-domain", "f-paying"].forEach(id => $(id).addEventListener("change", () => { showAll = false; renderList(); }));
 $("more").addEventListener("click", () => { showAll = true; renderList(); });
-function openRow(tr) {
-  if (!tr) return;
-  $("account-input").value = tr.dataset.id;
-  lookup(tr.dataset.id);
+$("rows").addEventListener("click", e => {
+  const btn = e.target.closest("button[data-id]");
+  if (!btn) return;
+  $("account-input").value = btn.dataset.id;
+  lookup(btn.dataset.id);
   $("card").scrollIntoView({ behavior: "smooth", block: "nearest" });
-}
-$("rows").addEventListener("click", e => openRow(e.target.closest("tr")));
-$("rows").addEventListener("keydown", e => { if (e.key === "Enter") openRow(e.target.closest("tr")); });
+});
 
 load();
 </script>
