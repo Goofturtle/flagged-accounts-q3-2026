@@ -4,7 +4,54 @@
 |---|---|
 | `q3-2026-reply-labels.csv` | Buying-intent label for each of the 840 replies in the Q3 2026 Outbound Email Reply Export |
 | `q3-2026-conversion-analysis.html` | Converted vs not-converted comparison and the 0–100 lead-scoring rules |
+| `dashboard/index.html` | Call list dashboard: a rep types or picks an account and sees its rank, score, band and reason |
+| `dashboard/paying-account-lookup.png` | The dashboard showing a paying account (ACC-10070) |
 | `.env.example` | Copy to `.env` and add `OPENROUTER_API_KEY`. `.env` is git-ignored. |
+
+## Call list dashboard
+
+Open `dashboard/index.html` from any web server, for example `python -m http.server 3590` in this folder, then go to `http://localhost:3590/dashboard/`. It needs an internet connection, because it reads the data from Google Sheets.
+
+**Where the numbers come from:** the page reads the "Ranked call list" tab of the [Q3 2026 Ranked Call List v3](https://docs.google.com/spreadsheets/d/1iGSvshfq0duZX7YIIByxbNwJYSdMqWXHZJoRLZ7vsmw/edit) Google Sheet as CSV every time it loads. No rank, score, band, reason or count is typed into the page. If the sheet can't be loaded, the page says so instead of showing anything. The header line confirms how many accounts loaded and that none is missing a score or reason.
+
+**Bands** (from the rep lookup brief): Call now 80–100, Call this week 50–79, Nurture 0–49. All 1,200 accounts are ranked by score. The 60 paying accounts keep their score rank and show an "Already paying" badge.
+
+**The 10 rep lookups, checked in the browser against the sheet:**
+
+| # | Lookup | Result |
+|---|---|---|
+| 1 | `ACC-10001` | Rank 1,114 of 1,200, score 0, Nurture |
+| 2 | `ACC-10587` | Rank 404, score 27, Nurture |
+| 3 | `ACC-11200` | Rank 1,200, score 0, Nurture (the last account loads) |
+| 4 | ` ACC-10342` (leading space) | Same card as `ACC-10342`: rank 1,023 |
+| 5 | `acc-10918` (lower case) | Same card as `ACC-10918`: rank 606 |
+| 6 | `ACC-11347` | "isn't in the Q3 ranked call list … so it has no score yet" |
+| 7 | Pick by workspace name | Dropdown of all 1,200 accounts grouped by workspace name, with ID and rank; picking one shows the same card |
+| 8 | Domain type = Schools | Top school is ACC-10575 at rank 591, and its reason gives the student sign-up count |
+| 9 | Band = Call now | 63 accounts, ranks 1 to 63, all scoring 80 or more |
+| 10 | A paying account (ACC-10070) | Rank 1, score 100, Call now, "Already paying" badge and banner; no row on the page has a blank score or reason |
+
+### Main prompt
+
+```text
+Build a one-page call list dashboard at flagged-accounts-q3-2026/dashboard/index.html for Sales Development reps. Plain HTML, CSS and JavaScript in one file, no framework and no build step.
+
+Data: on every load, fetch the "Ranked call list" tab of the Q3 2026 Ranked Call List v3 Google Sheet as CSV (gviz endpoint). Columns: Rank, account_id, workspace_name, Score, Band, Reason, Already paying, domain_type, rep_owner. Never type or hard-code a rank, score, band, reason or count. Every value on the page comes from that fetch. If the fetch fails or a column is missing, say so plainly instead of showing anything. Show how many accounts loaded and whether any row is missing a score or reason.
+
+Lookup: a text box for the account ID. Remove spaces and upper-case it before matching, so " ACC-10342" and "acc-10918" find the account. Show rank "of 1,200", score out of 100, band and the one-line reason, plus the account ID, workspace name, domain type and rep. If the ID isn't in the list, show a plain message that it isn't in the Q3 list and has no score. Never crash or show a blank card.
+
+Picker: a dropdown of every account grouped by workspace name, each option showing the name, ID and rank. Picking one shows the same card as typing the ID.
+
+Paying accounts: when Already paying is Yes, show an "Already paying" badge and a line telling the rep it is already a customer.
+
+Ranked list: a table under the card, sorted by rank, with filters for band, domain type (including "Schools: university + K-12") and paying status. Show every row when a filter leaves 100 or fewer; otherwise show 50 with a "Show all" button. Clicking a row opens its card.
+
+Design: flat and readable at a glance, Inter, one blue accent, band pills, 44 px touch targets, keyboard focus visible, works at 375 px wide.
+
+Before finishing, run all 10 lookups from "Rep Lookup Requests for the Call List Dashboard Demo" in a browser and check every answer against the account's row in the Google Sheet.
+```
+
+**Note on the prompt:** the key line is the data rule. Every number comes from the live Google Sheet, so the dashboard and the sheet can't disagree. The bands in the sheet were changed to the brief's 80/50 cut-offs first, so the page only has to display them, not work them out.
 
 ## Reply labels
 
