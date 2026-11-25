@@ -18,7 +18,7 @@ def read(path):
 
 
 acc = read(accounts_csv)
-ranked = read(ROOT / "q3-2026-call-bands.csv")
+ranked = sorted(read(ROOT / "q3-2026-call-bands.csv"), key=lambda r: int(r["rank"]))
 labels = read(ROOT / "q3-2026-reply-labels.csv")
 replies = read(replies_csv)
 
@@ -26,6 +26,7 @@ is_paid = lambda r: r["converted_to_paid"].strip().lower() == "true"
 num = lambda r, c: float(r[c])
 paid = [r for r in acc if is_paid(r)]
 company_free = [r for r in acc if not is_paid(r) and r["domain_type"] == "company"]
+company_paid = [r for r in paid if r["domain_type"] == "company"]
 schools = [r for r in acc if r["domain_type"] in ("university", "k12_school")]
 
 # Slide 2 and 5: the 1,200-dot grid. Account order vs rank order, paying flagged.
@@ -37,8 +38,10 @@ grid = [{"a": i, "r": rank_of[r["account_id"]] - 1, "p": 1 if is_paid(r) else 0}
 SIGNALS = [("company_domain_seats", "Company seats"), ("teamspaces", "Teamspaces"),
            ("integrations_connected", "Integrations"), ("pricing_page_visits_30d", "Pricing-page visits, 30 days"),
            ("weekly_active_users", "Weekly active users")]
-signals = [{"label": lab, "paid": round(statistics.mean(num(r, c) for r in paid), 1),
-            "free": round(statistics.mean(num(r, c) for r in company_free), 1)} for c, lab in SIGNALS]
+signals = []
+for c, lab in SIGNALS:
+    mp, mf = statistics.mean(num(r, c) for r in company_paid), statistics.mean(num(r, c) for r in company_free)
+    signals.append({"label": lab, "paid": round(mp, 1), "free": round(mf, 1), "ratio": round(mp / mf, 1)})
 
 # Slide 5: bands vs who actually paid.
 bands = []
@@ -74,8 +77,8 @@ top_rows = [{k: r[k] for k in ("rank", "account_id", "workspace_name", "score", 
 free_bands = Counter(r["band"] for r in free_ranked)
 
 # Slide 9: what we learned.
-by_members = sorted(acc, key=lambda r: -num(r, "total_members"))[:60]
-by_seats = sorted(acc, key=lambda r: -num(r, "company_domain_seats"))[:60]
+by_members = sorted(acc, key=lambda r: (-num(r, "total_members"), r["account_id"]))[:60]
+by_seats = sorted(acc, key=lambda r: (-num(r, "company_domain_seats"), r["account_id"]))[:60]
 top100 = ranked[:100]
 reply_dom = {r["reply_id"]: r["domain_type"] for r in replies}
 acc_dom = {r["account_id"]: r["domain_type"] for r in acc}
@@ -105,13 +108,24 @@ data = {
     "seatsTop60Paid": sum(is_paid(r) for r in by_seats),
     "top100Paid": sum(r["already_paying"] == "Yes" for r in top100),
     "replyIdAgree": agree,
-    "lookupsPassed": 10, "lookupsTotal": 10,
+    "lookupsPassed": 10, "lookupsTotal": 10,  # recorded by hand from the browser check (README)
+    "companyPaid": len(company_paid), "labeled": len(labels) - auto_replies,
+    "topFree": top_rows[0], "score100th": int(ranked[99]["score"]),
+    "rank100Ties": sum(r["score"] == ranked[99]["score"] for r in ranked),
     "dashboardUrl": "goofturtle.github.io/flagged-accounts-q3-2026/dashboard",
 }
 
-html = (HERE / "template.html").read_text(encoding="utf-8").replace("/*DATA*/null", json.dumps(data, separators=(",", ":")))
+# cross-checks between the sources, so a mismatch stops the build instead of producing a wrong slide
+assert sum(b["n"] for b in bands) == len(acc) == len(ranked), "band counts don't cover every account"
+assert sum(b["paid"] for b in bands) == len(paid), "paying flags in the ranked list don't match the account list"
+assert len(free_ranked) + len(paid) == len(acc)
+assert sum(lab_count.values()) == len(replies) == len(labels), "reply labels don't cover every reply"
+assert all(len(b["examples"]) == 2 for b in board), "a board column has fewer than two example replies"
+blob = json.dumps(data, separators=(",", ":"), ensure_ascii=False).replace("<", "\u003c")
+(HERE / "data.json").write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
+html = (HERE / "template.html").read_text(encoding="utf-8").replace("/*DATA*/null", blob)
 (HERE / "index.html").write_text(html, encoding="utf-8")
-slides = (HERE / "slides-template.html").read_text(encoding="utf-8").replace("/*DATA*/null", json.dumps(data, separators=(",", ":")))
+slides = (HERE / "slides-template.html").read_text(encoding="utf-8").replace("/*DATA*/null", blob)
 (HERE / "slides.html").write_text(slides, encoding="utf-8")
 summary = {k: v for k, v in data.items() if k not in ("grid", "board", "topRows")}
 print(json.dumps(summary, indent=1))

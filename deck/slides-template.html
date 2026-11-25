@@ -208,7 +208,7 @@ add(frame(1, false, `
     <div>
       <div class="big blue" style="font-size:230px">${Math.round(DATA.paidPct)}%</div>
       <p class="lede" style="font-size:24px;color:var(--tx);margin-top:26px">${DATA.paid} of ${fmt(DATA.total)} converted in Q3. Every one used a company email domain.</p>
-      <div class="callout" style="margin-top:22px;font-size:20px"><span class="ci">${ic("alert", "#e03e3e")}</span><div>Reps were calling student-heavy workspaces first. None of the ${DATA.schools} school workspaces paid.</div></div>
+      <div class="callout" style="margin-top:22px;font-size:20px"><span class="ci">${ic("alert", "#e03e3e")}</span><div>Student workspaces look busiest, but ${DATA.schoolsPaid} of the ${DATA.schools} paid. Reps had been calling them first (rep brief).</div></div>
     </div>
     <div><div class="embed grid" style="padding:34px 38px 26px">${dots("a", g => g.p ? "#2383e2" : "#e3e2e0")}
       <div class="legend"><span><b style="background:#2383e2"></b>Paying (${DATA.paid})</span><span><b style="background:#e3e2e0"></b>Still free (${fmt(DATA.total - DATA.paid)})</span></div></div>
@@ -246,7 +246,7 @@ add(frame(3, false, `
 
 /* 5 proof (dark mode) */
 add(frame(4, true, `
-  <h1>${pct(B["Call now"].paid, B["Call now"].n)}% of Call now accounts became paying teams</h1>
+  <h1>${pct(B["Call now"].paid, B["Call now"].n)}% of Call now accounts are already paying teams</h1>
   <div class="cols" style="grid-template-columns:1fr 520px;margin-top:40px;align-items:start;gap:56px">
     <div class="grid">${dots("r", g => g.p ? "#529cca" : "#333")}
       <div class="legend"><span><b style="background:#529cca"></b>Paying</span><span><b style="background:#333"></b>Still free</span><span>Same ${fmt(DATA.total)} workspaces, sorted by score</span></div></div>
@@ -260,16 +260,16 @@ add(frame(4, true, `
 
 /* 6 board */
 add(frame(5, false, `
-  <h1>All ${DATA.replies} email replies, labeled by buying intent</h1>
+  <h1>${fmt(DATA.labeled)} email replies labeled by buying intent</h1>
   <div style="margin-top:30px">
     <div class="dbbar"><span class="view on">${ic("board")}Board</span><span class="view">${ic("table")}Table</span>
-      <span class="tools"><span>${DATA.autoReplies} auto-replies wait for a person · ${DATA.optOuts} opt-outs never called</span>${ic("filter")}<span class="new">New</span></span></div>
+      <span class="tools"><span>${DATA.autoReplies} auto-replies wait for a person · ${DATA.optOuts} opt-outs flagged for suppression</span>${ic("filter")}<span class="new">New</span></span></div>
     <div class="boardwrap"><div class="board">${DATA.board.map(c => `<div class="bcol">
       <div class="bhead"><span class="tag dot ${LAB[c.key]}" style="font-size:18px">${c.name}</span><span style="font-weight:600">${c.n}</span></div>
       ${c.examples.map((t, j) => `<div class="bcard">“${esc(t)}”<div class="meta"><span class="tag ${c.conf[j] === "high" ? "t-gray" : "t-orange"}">confidence: ${c.conf[j]}</span></div></div>`).join("")}
       <div class="bnew">+ New</div></div>`).join("")}</div></div>
   </div>`),
-  "Every reply got one of the team's five labels. Opt-outs are marked so those addresses are never called, and auto-replies wait for a real answer. The cards are real replies.");
+  `${fmt(DATA.labeled)} human replies got one of the team's five labels. ${DATA.autoReplies} auto-replies wait for a real answer, and ${DATA.optOuts} opt-outs are flagged for suppression. The cards are real replies.`);
 
 /* 7 sheet embed */
 add(frame(6, false, `
